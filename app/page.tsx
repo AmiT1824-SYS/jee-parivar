@@ -1,4 +1,4 @@
-// @ts-nocheck
+\// @ts-nocheck
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -8,9 +8,9 @@ import 'katex/dist/katex.min.css';
 import Latex from 'react-latex-next';
 
 // ============================================================================
-// 🔑 SECURE OPENROUTER API KEY CONFIGURATION
+// 🔑 DIRECT HARDCODED OPENROUTER API KEY (Zero Config Errors)
 // ============================================================================
-const OPENROUTER_API_KEY = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY || ""; 
+const OPENROUTER_API_KEY = "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"; 
 
 export default function JEEParivarUltimateLatexApp() {
   // ============================================================================
@@ -232,12 +232,6 @@ export default function JEEParivarUltimateLatexApp() {
     }
 
     setIsProcessingPdf(true);
-
-    if (!OPENROUTER_API_KEY) {
-      alert('⚠️ API Key missing in Vercel Environment Variables!');
-      setIsProcessingPdf(false);
-      return;
-    }
 
     try {
       const getBase64 = (file) => new Promise((resolve, reject) => {
