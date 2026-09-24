@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 
-export default function JEEParivarVerifiedApp() {
+export default function JEEParivarFinalApp() {
   // Navigation & Auth States
   const [currentView, setCurrentView] = useState<'landing' | 'login' | 'dashboard' | 'test' | 'result' | 'remediation'>('landing');
   const [authMethod, setAuthMethod] = useState<'choice' | 'phone' | 'google' | 'name'>('choice');
@@ -97,7 +97,7 @@ export default function JEEParivarVerifiedApp() {
     }
   };
 
-  // Helper to generate dynamic YouTube search links based on question text
+  // Helper to generate dynamic YouTube search links
   const getYouTubeSearchLink = (text) => {
     const query = encodeURIComponent(text.slice(0, 50) + ' JEE solution');
     return `https://www.youtube.com/results?search_query=${query}`;
@@ -377,7 +377,7 @@ export default function JEEParivarVerifiedApp() {
               </span>
             </h1>
             <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto">
-              Dual PDF uploads, exact question-wise YouTube search query matching, subject-wise analytics, and rank predictors.
+              Lightning-fast frontend, exact question-wise YouTube search matching, subject-wise analytics, and rank predictors. No backend required!
             </p>
             <button
               onClick={() => setCurrentView('login')}
