@@ -3,52 +3,42 @@
 
 import React, { useState, useEffect } from 'react';
 
-// 👇 YAHAN SE LATEX IMPORTS ADD HUE HAIN 👇
-// Ensure you ran: npm install react-latex-next katex --legacy-peer-deps
+// 👇 LATEX IMPORTS 👇
 import 'katex/dist/katex.min.css';
 import Latex from 'react-latex-next';
 
 // ============================================================================
-// 🔑 GEMINI API KEY CONFIGURATION
+// 🔑 GEMINI API KEY CONFIGURATION (From Vercel Environment Variables)
 // ============================================================================
-// 👇 YAHAN APNI NAYI GEMINI API KEY DAALIYE 👇
-const GEMINI_API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY || "YAHAN_APNI_ASLI_API_KEY_DAALO"; 
-// 👆 ========================================= 👆
+const GEMINI_API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY || ""; 
 
 export default function JEEParivarUltimateLatexApp() {
   // ============================================================================
   // 1. STATE MANAGEMENT
   // ============================================================================
   
-  // Navigation & Auth States
   const [currentView, setCurrentView] = useState<'landing' | 'login' | 'dashboard' | 'test' | 'result' | 'remediation'>('landing');
   const [authMethod, setAuthMethod] = useState<'choice' | 'phone' | 'google' | 'name'>('choice');
   
-  // Credentials
   const [studentName, setStudentName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
   const [isOtpSent, setIsOtpSent] = useState(false);
   
-  // Exam Mode & Configuration States
   const [examType, setExamType] = useState<'MAIN' | 'ADVANCED' | 'DEMO' | 'REAL_PDF'>('MAIN');
   const [customMinutes, setCustomMinutes] = useState(180);
-  const [timer, setTimer] = useState(10800); // Default 3 hours
+  const [timer, setTimer] = useState(10800); 
   
-  // Test Session States
   const [testQuestions, setTestQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState({});
-  const [reviewStatus, setReviewStatus] = useState({}); // 👈 NEW: Track Mark for Review
+  const [reviewStatus, setReviewStatus] = useState({}); // Track Mark for Review
   const [questionTimers, setQuestionTimers] = useState({});
-  const [warningCount, setWarningCount] = useState(0);
 
-  // Dual Real PDF Upload States
   const [questionFile, setQuestionFile] = useState(null);
   const [answerKeyFile, setAnswerKeyFile] = useState(null);
   const [isProcessingPdf, setIsProcessingPdf] = useState(false);
 
-  // Scorecard State
   const [scoreCard, setScoreCard] = useState(null);
 
   // ============================================================================
@@ -60,9 +50,7 @@ export default function JEEParivarUltimateLatexApp() {
         console.log("Tab switched, but security is bypassed. No warning issued.");
       }
     };
-    const handleContextMenu = (e) => {
-      // e.preventDefault(); 
-    };
+    const handleContextMenu = (e) => {};
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     document.addEventListener('contextmenu', handleContextMenu);
@@ -102,7 +90,6 @@ export default function JEEParivarUltimateLatexApp() {
   // 4. TEST INTERFACE ACTIONS (NTA STYLE)
   // ============================================================================
   
-  // Handle Virtual Keypad
   const handleVirtualKeypad = (char) => {
     const q = testQuestions[currentQuestionIndex];
     if (!q) return;
@@ -119,18 +106,16 @@ export default function JEEParivarUltimateLatexApp() {
     }
   };
 
-  // NTA: Save & Next
   const handleSaveAndNext = () => {
     const q = testQuestions[currentQuestionIndex];
     if (q) {
-      setReviewStatus({ ...reviewStatus, [q.id]: false }); // Remove review flag if saved
+      setReviewStatus({ ...reviewStatus, [q.id]: false }); 
     }
     if (currentQuestionIndex < testQuestions.length - 1) {
       setCurrentQuestionIndex((prev) => prev + 1);
     }
   };
 
-  // NTA: Mark for Review & Next
   const handleMarkForReviewAndNext = () => {
     const q = testQuestions[currentQuestionIndex];
     if (q) {
@@ -141,7 +126,6 @@ export default function JEEParivarUltimateLatexApp() {
     }
   };
 
-  // NTA: Clear Response
   const handleClearResponse = () => {
     const q = testQuestions[currentQuestionIndex];
     if (q) {
@@ -152,9 +136,6 @@ export default function JEEParivarUltimateLatexApp() {
     }
   };
 
-  // ============================================================================
-  // 5. YOUTUBE DYNAMIC SEARCH LINK GENERATOR
-  // ============================================================================
   const getYouTubeSearchLink = (text) => {
     const cleanText = text.replace(/[\$\\]/g, ' ').slice(0, 50).trim();
     const query = encodeURIComponent(cleanText + ' JEE solution video');
@@ -162,7 +143,7 @@ export default function JEEParivarUltimateLatexApp() {
   };
 
   // ============================================================================
-  // 6. DIRECT FRONTEND-TO-GEMINI API CALL (REAL PDF PARSER)
+  // 6. DIRECT FRONTEND-TO-GEMINI API CALL (STRICT MODE FOR ALL QUESTIONS)
   // ============================================================================
   const handleRealPdfUploadAndParse = async () => {
     if (!questionFile) {
@@ -172,7 +153,7 @@ export default function JEEParivarUltimateLatexApp() {
 
     setIsProcessingPdf(true);
 
-    if (!GEMINI_API_KEY || GEMINI_API_KEY === "YAHAN_APNI_ASLI_API_KEY_DAALO") {
+    if (!GEMINI_API_KEY) {
       alert('⚠️ API Key missing! Running Smart Simulation Mode with LaTeX so the app does not crash.');
       setTimeout(() => {
         setIsProcessingPdf(false);
@@ -231,8 +212,8 @@ export default function JEEParivarUltimateLatexApp() {
       }
 
       promptText += `
-      Extract all questions, options, and correct answers. 
-      CRITICAL INSTRUCTION: Preserve all mathematical equations, formulas, and symbols in standard LaTeX format wrapped in single $ for inline or double $$ for block equations.
+      CRITICAL INSTRUCTION 1: You MUST extract EVERY SINGLE QUESTION present in the attached PDF. Do not skip, summarize, or truncate. Process the entire document page by page. If there are 50 questions in the PDF, your JSON array MUST contain exactly 50 objects.
+      CRITICAL INSTRUCTION 2: Preserve all mathematical equations, formulas, and symbols in standard LaTeX format wrapped in single $ for inline or double $$ for block equations.
       Return ONLY a raw valid JSON array format like this (NO markdown blocks, NO backticks, NO extra text):
       [
         {
@@ -661,8 +642,6 @@ export default function JEEParivarUltimateLatexApp() {
         </header>
         
         <main className="flex-1 p-4 md:p-8 max-w-[1400px] mx-auto w-full grid lg:grid-cols-4 gap-6 md:gap-8">
-          
-          {/* Main Question Area (Takes 3 columns on large screens) */}
           <div className="lg:col-span-3 bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 flex flex-col justify-between shadow-2xl">
             <div>
               <div className="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
@@ -714,43 +693,26 @@ export default function JEEParivarUltimateLatexApp() {
               )}
             </div>
 
-            {/* Test Navigation Footer (NTA Style Buttons) */}
             <div className="grid grid-cols-2 md:flex md:flex-wrap justify-between pt-6 border-t border-slate-800 items-center gap-3">
-              <button 
-                onClick={handleClearResponse} 
-                className="px-4 md:px-6 py-3 bg-slate-800 hover:bg-slate-700 rounded-xl font-bold text-xs md:text-sm text-slate-300 transition-colors"
-              >
+              <button onClick={handleClearResponse} className="px-4 md:px-6 py-3 bg-slate-800 hover:bg-slate-700 rounded-xl font-bold text-xs md:text-sm text-slate-300 transition-colors">
                 Clear Response
               </button>
               
-              <button 
-                onClick={handleMarkForReviewAndNext} 
-                className="px-4 md:px-6 py-3 bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 border border-purple-500/30 rounded-xl font-bold text-xs md:text-sm transition-colors"
-              >
+              <button onClick={handleMarkForReviewAndNext} className="px-4 md:px-6 py-3 bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 border border-purple-500/30 rounded-xl font-bold text-xs md:text-sm transition-colors">
                 Mark for Review & Next
               </button>
 
               <div className="col-span-2 flex justify-between gap-3 w-full md:w-auto mt-2 md:mt-0">
-                <button 
-                  disabled={currentQuestionIndex === 0} 
-                  onClick={() => setCurrentQuestionIndex(prev => prev - 1)} 
-                  className="px-6 py-3 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl font-bold text-sm transition-colors flex-1 md:flex-none"
-                >
+                <button disabled={currentQuestionIndex === 0} onClick={() => setCurrentQuestionIndex(prev => prev - 1)} className="px-6 py-3 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl font-bold text-sm transition-colors flex-1 md:flex-none">
                   ← Previous
                 </button>
                 
                 {currentQuestionIndex < testQuestions.length - 1 ? (
-                  <button 
-                    onClick={handleSaveAndNext} 
-                    className="px-8 py-3 bg-green-500 hover:bg-green-600 font-black text-slate-900 rounded-xl shadow-lg transition-transform transform hover:scale-105 flex-1 md:flex-none"
-                  >
+                  <button onClick={handleSaveAndNext} className="px-8 py-3 bg-green-500 hover:bg-green-600 font-black text-slate-900 rounded-xl shadow-lg transition-transform transform hover:scale-105 flex-1 md:flex-none">
                     Save & Next →
                   </button>
                 ) : (
-                  <button 
-                    onClick={handleSubmitTest} 
-                    className="px-8 py-3 bg-blue-500 hover:bg-blue-600 font-black text-slate-900 rounded-xl shadow-lg transition-transform transform hover:scale-105 flex-1 md:flex-none"
-                  >
+                  <button onClick={handleSubmitTest} className="px-8 py-3 bg-blue-500 hover:bg-blue-600 font-black text-slate-900 rounded-xl shadow-lg transition-transform transform hover:scale-105 flex-1 md:flex-none">
                     Submit Test 🏁
                   </button>
                 )}
@@ -758,7 +720,6 @@ export default function JEEParivarUltimateLatexApp() {
             </div>
           </div>
           
-          {/* Question Palette Sidebar (NTA Colors) */}
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 overflow-y-auto max-h-[700px] shadow-xl flex flex-col">
             <h3 className="font-black mb-6 text-sm text-slate-400 uppercase tracking-wider border-b border-slate-800 pb-3">Question Palette</h3>
             
@@ -775,7 +736,6 @@ export default function JEEParivarUltimateLatexApp() {
                 } else if (!hasAnswer && isReview) {
                   btnClass = 'bg-purple-500/20 text-purple-400 border-purple-500/30'; // Marked for Review
                 } else if (hasAnswer && isReview) {
-                  // Answered and Marked for Review
                   btnClass = 'bg-purple-500/20 text-purple-400 border-purple-500/30 relative';
                 }
 
@@ -796,7 +756,6 @@ export default function JEEParivarUltimateLatexApp() {
               })}
             </div>
             
-            {/* NTA Legends */}
             <div className="mt-8 pt-6 border-t border-slate-800 space-y-3">
               <div className="flex items-center gap-3 text-xs font-bold text-slate-400">
                 <div className="w-5 h-5 rounded bg-green-500/20 border border-green-500/30"></div> Answered
@@ -895,7 +854,7 @@ export default function JEEParivarUltimateLatexApp() {
     );
   }
 
-  // DIAGNOSTICS
+  // DIAGNOSTICS & REMEDIATION
   if (currentView === 'remediation' && scoreCard) {
     return (
       <div className="min-h-screen bg-slate-950 text-white p-6 md:p-10 max-w-5xl mx-auto font-sans">
