@@ -137,7 +137,7 @@ export default function JEEParivarUltimateLatexApp() {
   };
 
   // ============================================================================
-  // 5. DIRECT FRONTEND-TO-GEMINI API CALL (UPDATED TO GEMINI-3.6-FLASH)
+  // 5. DIRECT FRONTEND-TO-GEMINI API CALL (GEMINI-3.8-FLASH + RETRY)
   // ============================================================================
   const handleRealPdfUploadAndParse = async () => {
     if (!questionFile) {
@@ -223,22 +223,41 @@ export default function JEEParivarUltimateLatexApp() {
 
       parts.push({ text: promptText });
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${GEMINI_API_KEY}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          contents: [{ parts: parts }],
-          generationConfig: {
-            maxOutputTokens: 8192,
-            temperature: 0.1
+      let response;
+      let resultData;
+      let retries = 3;
+
+      while (retries > 0) {
+        try {
+          response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${GEMINI_API_KEY}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              contents: [{ parts: parts }],
+              generationConfig: {
+                maxOutputTokens: 8192,
+                temperature: 0.1
+              }
+            })
+          });
+
+          resultData = await response.json();
+
+          if (response.ok) break;
+
+          if (response.status === 503 || (resultData.error && resultData.error.message?.includes('high demand'))) {
+            retries--;
+            if (retries === 0) throw new Error(resultData.error?.message || 'Server is experiencing high demand. Please try again in a moment.');
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            continue;
+          } else {
+            throw new Error(resultData.error?.message || 'Failed to fetch from Gemini API');
           }
-        })
-      });
-
-      const resultData = await response.json();
-
-      if (!response.ok) {
-        throw new Error(resultData.error?.message || 'Failed to fetch from Gemini API');
+        } catch (fetchErr) {
+          retries--;
+          if (retries === 0) throw fetchErr;
+          await new Promise(resolve => setTimeout(resolve, 3000));
+        }
       }
 
       const rawText = resultData.candidates[0].content.parts[0].text;
@@ -566,7 +585,7 @@ export default function JEEParivarUltimateLatexApp() {
               </div>
             </div>
             <button onClick={handleRealPdfUploadAndParse} disabled={isProcessingPdf} className="w-full py-4 bg-green-600 hover:bg-green-500 font-black text-lg rounded-xl shadow-lg shadow-green-600/20 transition-all">
-              {isProcessingPdf ? '⏳ AI is Processing All Equations... (Please wait)' : 'Extract Math Data & Start Test 🤖'}
+              {isProcessingPdf ? '⏳ AI is Processing All Equations (Auto-retrying if busy)...' : 'Extract Math Data & Start Test 🤖'}
             </button>
           </div>
           
