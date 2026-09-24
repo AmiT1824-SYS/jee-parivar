@@ -8,13 +8,13 @@ import 'katex/dist/katex.min.css';
 import Latex from 'react-latex-next';
 
 // ============================================================================
-// 🔑 OPENROUTER API KEY CONFIGURATION (100% FREE MODEL)
+// 🔑 DIRECT OPENROUTER API KEY CONFIGURATION (Hardcoded for zero errors)
 // ============================================================================
-const OPENROUTER_API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY || ""; 
+const OPENROUTER_API_KEY = "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"; 
 
 export default function JEEParivarUltimateLatexApp() {
   // ============================================================================
-  // 1. STATE MANAGEMENT (Full Features)
+  // 1. STATE MANAGEMENT
   // ============================================================================
   const [currentView, setCurrentView] = useState<'landing' | 'login' | 'dashboard' | 'test' | 'result' | 'remediation' | 'focus'>('landing');
   const [authMethod, setAuthMethod] = useState<'choice' | 'phone' | 'google' | 'name'>('choice');
@@ -39,7 +39,7 @@ export default function JEEParivarUltimateLatexApp() {
   const [isProcessingPdf, setIsProcessingPdf] = useState(false);
   const [scoreCard, setScoreCard] = useState(null);
 
-  // Focus Mode & Hardcore Lockdown States
+  // Focus Mode & Lockdown States
   const [focusMinutes, setFocusMinutes] = useState(25);
   const [focusTimerSeconds, setFocusTimerSeconds] = useState(25 * 60);
   const [isFocusActive, setIsFocusActive] = useState(false);
@@ -49,7 +49,7 @@ export default function JEEParivarUltimateLatexApp() {
   const [analyticsTab, setAnalyticsTab] = useState<'today' | 'week' | 'month' | 'year'>('today');
 
   // ============================================================================
-  // 2. LOCALSTORAGE PERSISTENCE (State Retention on Refresh)
+  // 2. LOCALSTORAGE PERSISTENCE
   // ============================================================================
   useEffect(() => {
     const savedFocus = localStorage.getItem('jee_focus_sessions');
@@ -94,7 +94,7 @@ export default function JEEParivarUltimateLatexApp() {
   };
 
   // ============================================================================
-  // 3. GLOBAL TIMER & PER-QUESTION TIMER LOGIC
+  // 3. TIMERS & LOCKDOWN LOGIC
   // ============================================================================
   useEffect(() => {
     let interval;
@@ -112,7 +112,6 @@ export default function JEEParivarUltimateLatexApp() {
     return () => clearInterval(interval);
   }, [currentView, timer, scoreCard, currentQuestionIndex]);
 
-  // Focus Timer Countdown
   useEffect(() => {
     let interval;
     if (isFocusActive && !isLockedDown && focusTimerSeconds > 0) {
@@ -122,12 +121,11 @@ export default function JEEParivarUltimateLatexApp() {
     } else if (focusTimerSeconds === 0 && isFocusActive) {
       setIsFocusActive(false);
       saveFocusSession(focusMinutes);
-      alert('🎉 Focus Session Completed Successfully! Great job, Future IITian!');
+      alert('🎉 Focus Session Completed Successfully!');
     }
     return () => clearInterval(interval);
   }, [isFocusActive, isLockedDown, focusTimerSeconds, focusMinutes]);
 
-  // Tab Switch Detection & Hardcore Lockdown Trigger
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden && isFocusActive && !isLockedDown) {
@@ -158,7 +156,7 @@ export default function JEEParivarUltimateLatexApp() {
   };
 
   // ============================================================================
-  // 4. TEST INTERFACE ACTIONS (NTA STYLE)
+  // 4. TEST INTERFACE ACTIONS
   // ============================================================================
   const handleVirtualKeypad = (char) => {
     const q = testQuestions[currentQuestionIndex];
@@ -208,7 +206,6 @@ export default function JEEParivarUltimateLatexApp() {
     return `https://www.youtube.com/results?search_query=${query}`;
   };
 
-  // Analytics Calculations
   const getFilteredSessions = (period) => {
     const now = new Date();
     return focusSessions.filter(session => {
@@ -226,7 +223,7 @@ export default function JEEParivarUltimateLatexApp() {
   const totalHoursStudied = (totalMinutesStudied / 60).toFixed(1);
 
   // ============================================================================
-  // 5. OPENROUTER FREE API PDF PARSING
+  // 5. OPENROUTER PDF PARSING (With Authentication Header)
   // ============================================================================
   const handleRealPdfUploadAndParse = async () => {
     if (!questionFile) {
@@ -235,43 +232,6 @@ export default function JEEParivarUltimateLatexApp() {
     }
 
     setIsProcessingPdf(true);
-
-    if (!OPENROUTER_API_KEY) {
-      alert('⚠️ API Key missing! Running Simulation Mode.');
-      setTimeout(() => {
-        setIsProcessingPdf(false);
-        const simQs = [
-          {
-            id: 101,
-            subject: 'Physics',
-            type: 'MCQ',
-            text: `[Simulated] The electric field $E$ inside a conducting spherical shell of radius $R$ with charge $Q$ is:`,
-            options: ['$0$', '$\\frac{kQ}{R^2}$', '$\\frac{kQ}{r^2}$', '$\\infty$'],
-            correctAnswer: 0,
-            solution: 'By Gauss Law, electric field inside a conductor is always $E = 0$.'
-          },
-          {
-            id: 102,
-            subject: 'Mathematics',
-            type: 'INTEGER',
-            text: `[Simulated] Evaluate the integral $\\int_0^2 3x^2 dx$.`,
-            options: [],
-            correctAnswer: '8',
-            solution: 'The integral evaluates to $\\left[ x^3 \\right]_0^2 = 8$.'
-          }
-        ];
-        simQs.forEach(q => q.youtubeLink = getYouTubeSearchLink(q.text));
-        setTestQuestions(simQs);
-        setExamType('REAL_PDF');
-        setTimer(customMinutes * 60);
-        setCurrentQuestionIndex(0);
-        setAnswers({});
-        setReviewStatus({});
-        setQuestionTimers({});
-        setCurrentView('test');
-      }, 2000);
-      return;
-    }
 
     try {
       const getBase64 = (file) => new Promise((resolve, reject) => {
@@ -301,7 +261,7 @@ export default function JEEParivarUltimateLatexApp() {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model: "google/gemini-flash-1.5:free", // 100% Free OpenRouter Tier Model
+          model: "google/gemini-flash-1.5:free",
           messages: [{ role: "user", content: contentArray }],
           temperature: 0.1
         })
@@ -497,7 +457,7 @@ export default function JEEParivarUltimateLatexApp() {
         </nav>
         <header className="relative overflow-hidden py-24 px-6 text-center bg-gradient-to-b from-slate-900 to-slate-950 border-b border-slate-900">
           <div className="max-w-4xl mx-auto relative z-10">
-            <div className="inline-block mb-6 px-4 py-1.5 rounded-full bg-slate-800 text-amber-400 text-sm font-semibold border border-slate-700 shadow-md">🔥 Target: AIR Under 1000 • Developed by Amit</div>
+            <div className="inline-block mb-6 px-4 py.1.5 rounded-full bg-slate-800 text-amber-400 text-sm font-semibold border border-slate-700 shadow-md">🔥 Target: AIR Under 1000 • Developed by Amit</div>
             <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-6 leading-tight">Master JEE with <br /> <span className="bg-gradient-to-r from-orange-400 via-amber-300 to-yellow-500 bg-clip-text text-transparent">Free OpenRouter AI & Focus Analytics</span></h1>
             <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">Completely bypass anti-cheat restrictions. Upload PDFs directly from your browser to AI for exact extraction. Deep subject-wise analysis and LaTeX equation rendering included.</p>
             <button onClick={() => setCurrentView('login')} className="px-10 py-4 bg-orange-500 hover:bg-orange-600 font-black text-lg rounded-xl shadow-xl transition-all transform hover:-translate-y-1">Enter Portal & Login 🎯</button>
@@ -1010,9 +970,6 @@ export default function JEEParivarUltimateLatexApp() {
     );
   }
 
-  // ============================================================================
-  // ⏱️ FOCUS MODE & "I AM PRODUCTIVE" LOCKDOWN VIEW
-  // ============================================================================
   if (currentView === 'focus') {
     const formatFocusTime = (secs) => {
       const m = Math.floor(secs / 60);
@@ -1023,7 +980,6 @@ export default function JEEParivarUltimateLatexApp() {
     return (
       <div className="min-h-screen bg-slate-950 text-white p-6 md:p-10 max-w-4xl mx-auto space-y-8 relative font-sans">
         
-        {/* 🔥 HARDCORE LOCKDOWN MODAL SCREEN */}
         {isLockedDown && (
           <div className="fixed inset-0 bg-slate-950/95 backdrop-blur-xl z-50 flex items-center justify-center p-6">
             <div className="bg-slate-900 border-2 border-red-500 p-8 md:p-10 rounded-3xl max-w-md w-full shadow-2xl text-center space-y-6 animate-in zoom-in-95 duration-200">
@@ -1057,7 +1013,6 @@ export default function JEEParivarUltimateLatexApp() {
           <button onClick={() => setCurrentView('dashboard')} className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl font-bold transition-colors">← Dashboard</button>
         </div>
 
-        {/* Focus Timer Card */}
         <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl text-center space-y-6 shadow-2xl">
           <h3 className="text-xl font-bold text-slate-300">Lock-In Study Session</h3>
           <div className="text-6xl md:text-8xl font-mono font-black text-amber-400 tracking-wider">
@@ -1083,7 +1038,6 @@ export default function JEEParivarUltimateLatexApp() {
           )}
         </div>
 
-        {/* Analytics Section */}
         <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl space-y-6 shadow-2xl">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <h3 className="text-xl font-black text-orange-400">📈 Focus Analytics & Records</h3>
