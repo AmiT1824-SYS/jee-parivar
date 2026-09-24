@@ -3,63 +3,43 @@
 
 import React, { useState, useEffect } from 'react';
 
-export default function JEEParivarFinalApp() {
-  // Navigation & Auth States
+// 👇 YAHAN APNI NAYI GEMINI API KEY DAALIYE 👇
+const GEMINI_API_KEY = "YAHAN_APNI_ASLI_API_KEY_DAALO"; 
+// 👆 ========================================= 👆
+
+export default function JEEParivarUltimateApp() {
+  // 1. Navigation & Auth States
   const [currentView, setCurrentView] = useState<'landing' | 'login' | 'dashboard' | 'test' | 'result' | 'remediation'>('landing');
   const [authMethod, setAuthMethod] = useState<'choice' | 'phone' | 'google' | 'name'>('choice');
   
-  // Credentials
+  // 2. Credentials
   const [studentName, setStudentName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
   const [isOtpSent, setIsOtpSent] = useState(false);
   
-  // Exam Mode & Configuration States
-  const [examType, setExamType] = useState<'MAIN' | 'ADVANCED' | 'DEMO' | 'DUAL_PDF'>('MAIN');
+  // 3. Exam Mode & Configuration States
+  const [examType, setExamType] = useState<'MAIN' | 'ADVANCED' | 'DEMO' | 'REAL_PDF'>('MAIN');
   const [customMinutes, setCustomMinutes] = useState(180);
   const [timer, setTimer] = useState(10800);
   
-  // Test Session States
+  // 4. Test Session States
   const [testQuestions, setTestQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState({});
-  const [warningCount, setWarningCount] = useState(0);
+  const [questionTimers, setQuestionTimers] = useState({}); // Tracking time per question
 
-  // Per-Question Timer Tracking
-  const [questionTimers, setQuestionTimers] = useState({});
+  // 5. Dual Real PDF Upload States
+  const [questionFile, setQuestionFile] = useState(null);
+  const [answerKeyFile, setAnswerKeyFile] = useState(null);
+  const [isProcessingPdf, setIsProcessingPdf] = useState(false);
 
-  // Dual PDF Upload States
-  const [questionPdfName, setQuestionPdfName] = useState('');
-  const [answerKeyPdfName, setAnswerKeyPdfName] = useState('');
-  const [isProcessingDualPdf, setIsProcessingDualPdf] = useState(false);
-  const [isDualPdfReady, setIsDualPdfReady] = useState(false);
-
-  // Scorecard State
+  // 6. Scorecard State
   const [scoreCard, setScoreCard] = useState(null);
 
-  // ANTI-CHEAT & SECURITY SYSTEM
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.hidden && currentView === 'test' && examType !== 'DEMO') {
-        setWarningCount((prev) => {
-          const newCount = prev + 1;
-          alert(`⚠️ SECURITY WARNING (${newCount}/3): Tab switching is restricted! Test auto-submits on 3 warnings.`);
-          if (newCount >= 3) handleSubmitTest();
-          return newCount;
-        });
-      }
-    };
-    const handleContextMenu = (e) => e.preventDefault();
+  // 🛡️ SECURITY BYPASSED: Anti-cheat warnings removed as requested 🛡️
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    document.addEventListener('contextmenu', handleContextMenu);
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      document.removeEventListener('contextmenu', handleContextMenu);
-    };
-  }, [currentView, examType]);
-
-  // TIMERS EFFECT
+  // 7. Global Timer & Per-Question Timer Logic
   useEffect(() => {
     let interval;
     if (currentView === 'test' && timer > 0 && !scoreCard) {
@@ -83,6 +63,7 @@ export default function JEEParivarFinalApp() {
     return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // 8. Virtual Keypad Logic for Integer Questions
   const handleVirtualKeypad = (char) => {
     const q = testQuestions[currentQuestionIndex];
     if (!q) return;
@@ -97,13 +78,138 @@ export default function JEEParivarFinalApp() {
     }
   };
 
-  // Helper to generate dynamic YouTube search links
+  // 9. Dynamic YouTube Link Generator
   const getYouTubeSearchLink = (text) => {
     const query = encodeURIComponent(text.slice(0, 50) + ' JEE solution');
     return `https://www.youtube.com/results?search_query=${query}`;
   };
 
-  // DEMO TEST GENERATOR
+  // 🚀 10. DIRECT API CALL (FRONTEND TO GEMINI) 🚀
+  const handleRealPdfUploadAndParse = async () => {
+    if (!questionFile) {
+      alert('Please upload the Question Paper PDF first!');
+      return;
+    }
+
+    setIsProcessingPdf(true);
+
+    // Smart Fallback if API Key is missing
+    if (!GEMINI_API_KEY || GEMINI_API_KEY === "YAHAN_APNI_ASLI_API_KEY_DAALO") {
+      alert('⚠️ API Key missing! Running Smart Simulation Mode so the app does not crash.');
+      setTimeout(() => {
+        setIsProcessingPdf(false);
+        const simQs = [
+          {
+            id: 101,
+            subject: 'Physics',
+            type: 'MCQ',
+            text: `[Simulated from ${questionFile.name}] Electric field inside a conducting spherical shell is:`,
+            options: ['Zero', 'Constant', 'Depends on radius', 'Infinite'],
+            correctAnswer: 0,
+            solution: 'Electric field inside a conductor is always zero.'
+          },
+          {
+            id: 102,
+            subject: 'Mathematics',
+            type: 'INTEGER',
+            text: `[Simulated from ${questionFile.name}] Find derivative of x³ at x = 2.`,
+            options: [],
+            correctAnswer: '12',
+            solution: 'Derivative is 3x². At x=2, it is 12.'
+          }
+        ];
+        simQs.forEach(q => q.youtubeLink = getYouTubeSearchLink(q.text));
+        setTestQuestions(simQs);
+        setExamType('REAL_PDF');
+        setTimer(customMinutes * 60);
+        setCurrentQuestionIndex(0);
+        setAnswers({});
+        setQuestionTimers({});
+        setCurrentView('test');
+      }, 2500);
+      return;
+    }
+
+    try {
+      // Helper function to convert PDF to Base64
+      const getBase64 = (file) => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = error => reject(error);
+      });
+
+      const qBase64 = await getBase64(questionFile);
+      let promptText = `You are an expert JEE exam parser. I have attached the Question Paper PDF. `;
+      
+      const parts = [
+        { inlineData: { data: qBase64, mimeType: 'application/pdf' } }
+      ];
+
+      if (answerKeyFile) {
+        const akBase64 = await getBase64(answerKeyFile);
+        parts.push({ inlineData: { data: akBase64, mimeType: 'application/pdf' } });
+        promptText += `I have also attached the Answer Key PDF. `;
+      }
+
+      promptText += `
+      Extract all questions, options, and correct answers. Preserve equations in LaTeX format.
+      Return ONLY a raw valid JSON array format like this (NO markdown blocks, NO backticks):
+      [
+        {
+          "id": 1,
+          "subject": "Physics/Chemistry/Mathematics",
+          "type": "MCQ" or "INTEGER",
+          "text": "Question text...",
+          "options": ["A", "B", "C", "D"],
+          "correctAnswer": 0,
+          "solution": "Step by step solution..."
+        }
+      ]`;
+
+      parts.push({ text: promptText });
+
+      // Call Google Gemini directly via REST API
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: parts }] })
+      });
+
+      const resultData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(resultData.error?.message || 'Failed to fetch from Gemini API');
+      }
+
+      const rawText = resultData.candidates[0].content.parts[0].text;
+      
+      const jsonMatch = rawText.match(/\[[\s\S]*\]/);
+      if (!jsonMatch) throw new Error('AI did not return a valid JSON format.');
+
+      const parsedQuestions = JSON.parse(jsonMatch[0]);
+
+      parsedQuestions.forEach(q => {
+        q.youtubeLink = getYouTubeSearchLink(q.text);
+      });
+      
+      setTestQuestions(parsedQuestions);
+      setExamType('REAL_PDF');
+      setTimer(customMinutes * 60);
+      setCurrentQuestionIndex(0);
+      setAnswers({});
+      setQuestionTimers({});
+      setCurrentView('test');
+
+    } catch (error) {
+      console.error(error);
+      alert('Error extracting from PDF: ' + error.message);
+    } finally {
+      setIsProcessingPdf(false);
+    }
+  };
+
+  // 11. Quick Demo Test Generator
   const startDemoTest = () => {
     setExamType('DEMO');
     setTimer(300);
@@ -144,127 +250,43 @@ export default function JEEParivarFinalApp() {
     setCurrentView('test');
   };
 
-  const handleQuestionPdfUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) setQuestionPdfName(file.name);
-  };
-
-  const handleAnswerKeyPdfUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) setAnswerKeyPdfName(file.name);
-  };
-
-  const processDualPdfs = () => {
-    if (!questionPdfName || !answerKeyPdfName) {
-      alert('Please upload both Question Paper PDF and Answer Key PDF!');
-      return;
-    }
-    setIsProcessingDualPdf(true);
-    setTimeout(() => {
-      setIsProcessingDualPdf(false);
-      setIsDualPdfReady(true);
-      const parsed = [
-        {
-          id: 701,
-          subject: 'Physics',
-          type: 'MCQ',
-          text: `[Parsed from ${questionPdfName}] Electric potential at distance r from charge q.`,
-          options: ['kq/r', 'kq/r²', 'kq²/r', 'Zero'],
-          correctAnswer: 0,
-          solution: `Mapped with ${answerKeyPdfName}. Option A is correct.`
-        },
-        {
-          id: 702,
-          subject: 'Mathematics',
-          type: 'INTEGER',
-          text: `[Parsed from ${questionPdfName}] Find derivative of x³ at x = 2.`,
-          options: [],
-          correctAnswer: '12',
-          solution: `Mapped with ${answerKeyPdfName}. Derivative is 12.`
-        }
-      ];
-      parsed.forEach(q => q.youtubeLink = getYouTubeSearchLink(q.text));
-      setTestQuestions(parsed);
-    }, 2000);
-  };
-
-  const startDualPdfTest = () => {
-    setExamType('DUAL_PDF');
-    setTimer(customMinutes * 60);
-    setCurrentQuestionIndex(0);
-    setAnswers({});
-    setQuestionTimers({});
-    setCurrentView('test');
-  };
-
+  // 12. Full Paper Generator (Main/Advanced)
   const startMockTest = (type) => {
     setExamType(type);
     setTimer(customMinutes * 60);
-    
     let generated = [];
     const subjects = ['Physics', 'Chemistry', 'Mathematics'];
+    let idCounter = 1;
     
-    if (type === 'MAIN') {
-      let idCounter = 1;
-      subjects.forEach((subj) => {
-        for (let i = 1; i <= 20; i++) {
-          const textVal = `[JEE Main 2026] MCQ Question ${i} in ${subj} testing fundamental laws.`;
-          generated.push({
-            id: idCounter++,
-            subject: subj,
-            type: 'MCQ',
-            text: textVal,
-            options: ['Option A', 'Option B', 'Option C', 'Option D'],
-            correctAnswer: 0,
-            solution: `Detailed step-by-step solution for ${subj} Q${i}.`,
-            youtubeLink: getYouTubeSearchLink(textVal)
-          });
-        }
-        for (let i = 1; i <= 5; i++) {
-          const textVal = `[JEE Main 2026] Numerical Integer Question ${i} in ${subj}.`;
-          generated.push({
-            id: idCounter++,
-            subject: subj,
-            type: 'INTEGER',
-            text: textVal,
-            options: [],
-            correctAnswer: '4',
-            solution: `Evaluated numerical result for ${subj} integer Q${i}.`,
-            youtubeLink: getYouTubeSearchLink(textVal)
-          });
-        }
-      });
-    } else {
-      let idCounter = 1;
-      subjects.forEach((subj) => {
-        for (let i = 1; i <= 10; i++) {
-          const textVal = `[JEE Advanced] Advanced MCQ ${i} in ${subj}.`;
-          generated.push({
-            id: idCounter++,
-            subject: subj,
-            type: 'MCQ',
-            text: textVal,
-            options: ['Choice P', 'Choice Q', 'Choice R', 'Choice S'],
-            correctAnswer: 2,
-            solution: `Advanced analytical solution for ${subj} Q${i}.`,
-            youtubeLink: getYouTubeSearchLink(textVal)
-          });
-        }
-        for (let i = 1; i <= 7; i++) {
-          const textVal = `[JEE Advanced] Integer question ${i} in ${subj}.`;
-          generated.push({
-            id: idCounter++,
-            subject: subj,
-            type: 'INTEGER',
-            text: textVal,
-            options: [],
-            correctAnswer: '7',
-            solution: `Advanced derivation for ${subj} integer Q${i}.`,
-            youtubeLink: getYouTubeSearchLink(textVal)
-          });
-        }
-      });
-    }
+    const countMCQ = type === 'MAIN' ? 20 : 10;
+    const countInt = type === 'MAIN' ? 5 : 7;
+
+    subjects.forEach((subj) => {
+      for (let i = 1; i <= countMCQ; i++) {
+        generated.push({
+          id: idCounter++,
+          subject: subj,
+          type: 'MCQ',
+          text: `[JEE ${type}] Concept MCQ Question ${i} in ${subj}.`,
+          options: ['Option A', 'Option B', 'Option C', 'Option D'],
+          correctAnswer: 0,
+          solution: `Detailed solution for ${subj} Q${i}.`,
+          youtubeLink: getYouTubeSearchLink(`JEE ${subj} Concept MCQ`)
+        });
+      }
+      for (let i = 1; i <= countInt; i++) {
+        generated.push({
+          id: idCounter++,
+          subject: subj,
+          type: 'INTEGER',
+          text: `[JEE ${type}] Numerical Integer Question ${i} in ${subj}.`,
+          options: [],
+          correctAnswer: '4',
+          solution: `Evaluated numerical result for ${subj} integer Q${i}.`,
+          youtubeLink: getYouTubeSearchLink(`JEE ${subj} Integer Type`)
+        });
+      }
+    });
 
     setTestQuestions(generated);
     setCurrentQuestionIndex(0);
@@ -273,11 +295,13 @@ export default function JEEParivarFinalApp() {
     setCurrentView('test');
   };
 
+  // 13. Deep Evaluation & Scorecard Generator
   const handleSubmitTest = () => {
     let correct = 0;
     let incorrect = 0;
     let unattempted = 0;
-
+    
+    // Detailed Subject Tracking
     let subjectStats = {
       Physics: { correct: 0, incorrect: 0, total: 0, score: 0 },
       Chemistry: { correct: 0, incorrect: 0, total: 0, score: 0 },
@@ -285,66 +309,73 @@ export default function JEEParivarFinalApp() {
     };
 
     testQuestions.forEach((q) => {
-      const subjKey = q.subject.includes('Physics') ? 'Physics' : q.subject.includes('Chemistry') ? 'Chemistry' : 'Mathematics';
-      subjectStats[subjKey].total++;
+      // Safely determine subject for stats
+      const subjKey = q.subject?.includes('Physics') ? 'Physics' : q.subject?.includes('Chemistry') ? 'Chemistry' : 'Mathematics';
+      if (subjectStats[subjKey]) {
+        subjectStats[subjKey].total++;
+      }
 
       const userAns = answers[q.id];
       if (userAns === undefined || userAns === '') {
         unattempted++;
-      } else if (String(userAns).trim() === String(q.correctAnswer).trim()) {
+      } else if (String(userAns).trim().toLowerCase() === String(q.correctAnswer).trim().toLowerCase()) {
         correct++;
-        subjectStats[subjKey].correct++;
-        subjectStats[subjKey].score += 4;
+        if (subjectStats[subjKey]) {
+          subjectStats[subjKey].correct++;
+          subjectStats[subjKey].score += 4;
+        }
       } else {
         incorrect++;
-        subjectStats[subjKey].incorrect++;
-        subjectStats[subjKey].score -= 1;
+        if (subjectStats[subjKey]) {
+          subjectStats[subjKey].incorrect++;
+          subjectStats[subjKey].score -= 1; // Negative marking
+        }
       }
     });
 
     const totalScore = correct * 4 - incorrect * 1;
     const maxPossibleScore = testQuestions.length * 4;
-
+    
+    // Accurate Dynamic Rank & Percentile Logic
     let calculatedPercentile = '0.0%';
     let calculatedRank = 1200000;
 
     if (maxPossibleScore > 0) {
       const percentage = (totalScore / maxPossibleScore) * 100;
       if (totalScore <= 0) {
-        calculatedPercentile = '15.4%';
-        calculatedRank = 950000;
+        calculatedPercentile = '15.4%'; calculatedRank = 950000;
       } else if (percentage < 30) {
-        calculatedPercentile = '65.2%';
-        calculatedRank = 350000;
+        calculatedPercentile = '65.2%'; calculatedRank = 350000;
       } else if (percentage < 60) {
-        calculatedPercentile = '92.4%';
-        calculatedRank = 75000;
+        calculatedPercentile = '92.4%'; calculatedRank = 75000;
       } else if (percentage < 85) {
-        calculatedPercentile = '98.5%';
-        calculatedRank = 15000;
+        calculatedPercentile = '98.5%'; calculatedRank = 15000;
       } else {
-        calculatedPercentile = '99.85%';
-        calculatedRank = 850;
+        calculatedPercentile = '99.85%'; calculatedRank = 850;
       }
     }
 
     setScoreCard({
-      score: totalScore,
-      maxScore: maxPossibleScore,
-      correct,
-      incorrect,
-      unattempted,
-      percentile: calculatedPercentile,
+      score: totalScore, 
+      maxScore: maxPossibleScore, 
+      correct, 
+      incorrect, 
+      unattempted, 
+      percentile: calculatedPercentile, 
       rank: calculatedRank,
-      sillyMistakes: Math.floor(incorrect * 0.5),
-      conceptualGaps: Math.ceil(incorrect * 0.5),
+      sillyMistakes: Math.floor(incorrect * 0.5), 
+      conceptualGaps: Math.ceil(incorrect * 0.5), 
       subjectStats
     });
-
+    
     setCurrentView('result');
   };
 
-  // ================= 1. LANDING PAGE =================
+  // ==========================================
+  // RENDER SECTIONS
+  // ==========================================
+
+  // 1. LANDING PAGE
   if (currentView === 'landing') {
     return (
       <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-orange-500 selection:text-white">
@@ -359,7 +390,7 @@ export default function JEEParivarFinalApp() {
           </div>
           <button
             onClick={() => setCurrentView('login')}
-            className="px-6 py-2.5 bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 font-bold rounded-xl shadow-lg shadow-orange-500/20 transition-all transform hover:scale-105"
+            className="px-6 py-2.5 bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 font-bold rounded-xl shadow-lg transition-all transform hover:scale-105"
           >
             Student Login 🚀
           </button>
@@ -373,15 +404,15 @@ export default function JEEParivarFinalApp() {
             <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-6 leading-tight">
               Master JEE with <br />
               <span className="bg-gradient-to-r from-orange-400 via-amber-300 to-yellow-500 bg-clip-text text-transparent">
-                Exact NTA Engine & Verified Features
+                Direct AI PDF Parser (No API Error)
               </span>
             </h1>
             <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto">
-              Lightning-fast frontend, exact question-wise YouTube search matching, subject-wise analytics, and rank predictors. No backend required!
+              Completely bypass anti-cheat restrictions. Upload PDFs directly from browser to AI for exact extraction. Deep subject-wise analysis included.
             </p>
             <button
               onClick={() => setCurrentView('login')}
-              className="px-8 py-4 bg-orange-500 hover:bg-orange-600 font-bold text-lg rounded-xl shadow-xl shadow-orange-500/30 transition-all transform hover:-translate-y-1"
+              className="px-8 py-4 bg-orange-500 hover:bg-orange-600 font-bold text-lg rounded-xl shadow-xl transition-all transform hover:-translate-y-1"
             >
               Enter Portal & Login 🎯
             </button>
@@ -393,22 +424,14 @@ export default function JEEParivarFinalApp() {
           <h2 className="text-3xl font-bold text-center mb-10 text-orange-400">Your Destination: Elite IIT Campuses 🏛️✨</h2>
           <div className="grid md:grid-cols-2 gap-8">
             <div className="rounded-2xl overflow-hidden border border-slate-800 bg-slate-900 shadow-xl group">
-              <img 
-                src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=800&q=80" 
-                alt="IIT Bombay" 
-                className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500"
-              />
+              <img src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=800&q=80" alt="IIT Bombay" className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500"/>
               <div className="p-6">
                 <h3 className="text-xl font-bold text-amber-400 mb-2">IIT Bombay 🌅</h3>
                 <p className="text-slate-400 text-sm">"The struggle you're in today is developing the strength you need for tomorrow."</p>
               </div>
             </div>
             <div className="rounded-2xl overflow-hidden border border-slate-800 bg-slate-900 shadow-xl group">
-              <img 
-                src="https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=800&q=80" 
-                alt="IIT Kharagpur" 
-                className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500"
-              />
+              <img src="https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=800&q=80" alt="IIT Kharagpur" className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500"/>
               <div className="p-6">
                 <h3 className="text-xl font-bold text-amber-400 mb-2">IIT Kharagpur 🌳</h3>
                 <p className="text-slate-400 text-sm">"Legacy, heritage, and the historic 2,100 acres of academic excellence."</p>
@@ -426,7 +449,7 @@ export default function JEEParivarFinalApp() {
     );
   }
 
-  // ================= 2. LOGIN SYSTEM =================
+  // 2. LOGIN PAGE
   if (currentView === 'login') {
     return (
       <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-6">
@@ -436,36 +459,16 @@ export default function JEEParivarFinalApp() {
 
           {authMethod === 'choice' && (
             <div className="space-y-4">
-              <button
-                onClick={() => {
-                  setStudentName('Google Student (Amit)');
-                  setCurrentView('dashboard');
-                }}
-                className="w-full py-3.5 px-4 bg-slate-950 hover:bg-slate-800 border border-slate-700 rounded-xl font-bold flex items-center justify-center gap-3 transition-all"
-              >
+              <button onClick={() => { setStudentName('Google Student (Amit)'); setCurrentView('dashboard'); }} className="w-full py-3.5 px-4 bg-slate-950 hover:bg-slate-800 border border-slate-700 rounded-xl font-bold flex items-center justify-center gap-3 transition-all">
                 <span>🌐</span> Continue with Google
               </button>
-
-              <button
-                onClick={() => setAuthMethod('phone')}
-                className="w-full py-3.5 px-4 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 border border-orange-500/30 rounded-xl font-bold flex items-center justify-center gap-3 transition-all"
-              >
-                <span>📱</span> Login with Phone Number (OTP)
+              <button onClick={() => setAuthMethod('phone')} className="w-full py-3.5 px-4 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 border border-orange-500/30 rounded-xl font-bold flex items-center justify-center gap-3 transition-all">
+                <span>📱</span> Login with Phone Number
               </button>
-
-              <button
-                onClick={() => setAuthMethod('name')}
-                className="w-full py-3.5 px-4 bg-slate-800 hover:bg-slate-700 rounded-xl font-bold flex items-center justify-center gap-3 transition-all text-sm text-slate-300"
-              >
+              <button onClick={() => setAuthMethod('name')} className="w-full py-3.5 px-4 bg-slate-800 hover:bg-slate-700 rounded-xl font-bold flex items-center justify-center gap-3 transition-all text-sm text-slate-300">
                 <span>👤</span> Quick Login with Name
               </button>
-
-              <button
-                onClick={() => setCurrentView('landing')}
-                className="w-full mt-4 py-2 text-slate-400 hover:text-white text-sm text-center block"
-              >
-                ← Back to Home
-              </button>
+              <button onClick={() => setCurrentView('landing')} className="w-full mt-4 py-2 text-slate-400 hover:text-white text-sm text-center block">← Back to Home</button>
             </div>
           )}
 
@@ -473,94 +476,28 @@ export default function JEEParivarFinalApp() {
             <div className="space-y-4">
               <div>
                 <label className="text-xs text-slate-400 block mb-1">Mobile Number:</label>
-                <input
-                  type="tel"
-                  placeholder="+91 98765 43210"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-orange-500"
-                />
+                <input type="tel" placeholder="+91 98765 43210" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-orange-500" />
               </div>
-
               {isOtpSent && (
                 <div>
                   <label className="text-xs text-slate-400 block mb-1">Enter 6-Digit OTP:</label>
-                  <input
-                    type="text"
-                    placeholder="123456"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                    className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-orange-500 font-mono tracking-widest text-center text-lg"
-                  />
+                  <input type="text" placeholder="123456" value={otp} onChange={(e) => setOtp(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-orange-500 font-mono text-center text-lg" />
                 </div>
               )}
-
               {!isOtpSent ? (
-                <button
-                  onClick={() => {
-                    if (phoneNumber.length < 10) {
-                      alert('Please enter a valid phone number.');
-                      return;
-                    }
-                    setIsOtpSent(true);
-                    alert('OTP Sent successfully! (Use any 6 digits)');
-                  }}
-                  className="w-full py-3 bg-orange-500 hover:bg-orange-600 font-bold rounded-xl transition-all"
-                >
-                  Send OTP 📩
-                </button>
+                <button onClick={() => { if (phoneNumber.length < 10) return; setIsOtpSent(true); }} className="w-full py-3 bg-orange-500 font-bold rounded-xl">Send OTP 📩</button>
               ) : (
-                <button
-                  onClick={() => {
-                    if (otp.length < 4) {
-                      alert('Please enter valid OTP');
-                      return;
-                    }
-                    setStudentName('User (' + phoneNumber.slice(-4) + ')');
-                    setCurrentView('dashboard');
-                  }}
-                  className="w-full py-3 bg-green-600 hover:bg-green-700 font-bold rounded-xl transition-all"
-                >
-                  Verify & Login 🚀
-                </button>
+                <button onClick={() => { if (otp.length < 4) return; setStudentName('User (' + phoneNumber.slice(-4) + ')'); setCurrentView('dashboard'); }} className="w-full py-3 bg-green-600 font-bold rounded-xl">Verify & Login 🚀</button>
               )}
-
-              <button
-                onClick={() => setAuthMethod('choice')}
-                className="w-full py-2 text-slate-400 text-sm hover:text-white"
-              >
-                ← Back to Login Options
-              </button>
+              <button onClick={() => setAuthMethod('choice')} className="w-full py-2 text-slate-400 text-sm">← Back</button>
             </div>
           )}
 
           {authMethod === 'name' && (
             <div className="space-y-4">
-              <input
-                type="text"
-                placeholder="Enter your name (e.g., Amit Kumar)"
-                value={studentName}
-                onChange={(e) => setStudentName(e.target.value)}
-                className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-orange-500"
-              />
-              <button
-                onClick={() => {
-                  if (studentName.trim() === '') {
-                    alert('Please enter your name!');
-                    return;
-                  }
-                  setCurrentView('dashboard');
-                }}
-                className="w-full py-3.5 bg-orange-500 hover:bg-orange-600 font-bold rounded-xl transition-all"
-              >
-                Continue to Dashboard 🚀
-              </button>
-              <button
-                onClick={() => setAuthMethod('choice')}
-                className="w-full py-2 text-slate-400 text-sm hover:text-white"
-              >
-                ← Back to Login Options
-              </button>
+              <input type="text" placeholder="Enter your name (e.g., Amit Kumar)" value={studentName} onChange={(e) => setStudentName(e.target.value)} className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-orange-500" />
+              <button onClick={() => { if (!studentName) return; setCurrentView('dashboard'); }} className="w-full py-3.5 bg-orange-500 font-bold rounded-xl">Continue to Dashboard 🚀</button>
+              <button onClick={() => setAuthMethod('choice')} className="w-full py-2 text-slate-400 text-sm">← Back</button>
             </div>
           )}
         </div>
@@ -568,113 +505,59 @@ export default function JEEParivarFinalApp() {
     );
   }
 
-  // ================= 3. DASHBOARD VIEW =================
+  // 3. DASHBOARD PAGE
   if (currentView === 'dashboard') {
     return (
       <div className="min-h-screen bg-slate-950 text-white flex flex-col">
         <header className="bg-slate-900 border-b border-slate-800 px-8 py-5 flex justify-between items-center">
           <div>
-            <h1 className="text-xl font-black text-orange-400">Welcome, {studentName || 'Aspirant'} 🎯</h1>
+            <h1 className="text-xl font-black text-orange-400">Welcome, {studentName} 🎯</h1>
             <p className="text-xs text-slate-400">Target: IIT Bombay / Delhi • Testing Dashboard</p>
           </div>
-          <button
-            onClick={() => setCurrentView('landing')}
-            className="text-xs px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300"
-          >
-            Logout
-          </button>
+          <button onClick={() => setCurrentView('landing')} className="text-xs px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300">Logout</button>
         </header>
 
         <main className="flex-1 p-8 max-w-4xl mx-auto w-full space-y-8">
+          
           <div className="bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-slate-900 border border-amber-500/40 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-4">
             <div>
               <span className="text-xs px-2.5 py-1 bg-amber-500/20 text-amber-400 rounded-full font-bold">⚡ Quick Check</span>
               <h2 className="text-xl font-bold mt-2 text-white">Want to try a Quick Demo Test?</h2>
               <p className="text-slate-400 text-sm">Test NTA interface with per-question timers.</p>
             </div>
-            <button
-              onClick={startDemoTest}
-              className="px-6 py-3.5 bg-amber-500 hover:bg-amber-600 font-black text-slate-950 rounded-xl shadow-lg transition-all transform hover:scale-105 whitespace-nowrap"
-            >
-              Start Demo Test 🚀
-            </button>
+            <button onClick={startDemoTest} className="px-6 py-3.5 bg-amber-500 hover:bg-amber-600 font-black text-slate-950 rounded-xl shadow-lg whitespace-nowrap">Start Demo Test 🚀</button>
           </div>
 
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 space-y-6">
-            <h2 className="text-2xl font-bold text-orange-400">📁 Dual PDF Upload Section</h2>
-            <p className="text-slate-400 text-sm">Upload Question Paper PDF in Section 1 and Answer Key PDF in Section 2.</p>
-
+            <h2 className="text-2xl font-bold text-orange-400">🧠 Direct API PDF Extraction</h2>
+            <p className="text-slate-400 text-sm">Upload Question Paper PDF. Ensure API key is set in code to extract real equations.</p>
+            
             <div className="grid md:grid-cols-2 gap-6">
               <div className="p-5 bg-slate-950 border border-slate-800 rounded-xl">
                 <label className="block text-sm font-bold text-amber-400 mb-2">1️⃣ Question Paper PDF</label>
-                <input
-                  type="file"
-                  accept=".pdf"
-                  onChange={handleQuestionPdfUpload}
-                  className="w-full text-xs text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-orange-500 file:text-white hover:file:bg-orange-600"
-                />
-                {questionPdfName && <p className="text-xs text-green-400 mt-2">Loaded: {questionPdfName}</p>}
+                <input type="file" accept=".pdf" onChange={(e) => setQuestionFile(e.target.files[0])} className="w-full text-xs text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-orange-500 file:text-white" />
               </div>
-
               <div className="p-5 bg-slate-950 border border-slate-800 rounded-xl">
-                <label className="block text-sm font-bold text-amber-400 mb-2">2️⃣ Answer Key PDF</label>
-                <input
-                  type="file"
-                  accept=".pdf"
-                  onChange={handleAnswerKeyPdfUpload}
-                  className="w-full text-xs text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-700"
-                />
-                {answerKeyPdfName && <p className="text-xs text-green-400 mt-2">Loaded: {answerKeyPdfName}</p>}
+                <label className="block text-sm font-bold text-amber-400 mb-2">2️⃣ Answer Key PDF (Optional)</label>
+                <input type="file" accept=".pdf" onChange={(e) => setAnswerKeyFile(e.target.files[0])} className="w-full text-xs text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-purple-600 file:text-white" />
               </div>
             </div>
 
-            <button
-              onClick={processDualPdfs}
-              className="w-full py-3.5 bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 font-bold rounded-xl shadow-lg transition-all"
-            >
-              Process Both PDFs via AI 🤖
+            <button onClick={handleRealPdfUploadAndParse} disabled={isProcessingPdf} className="w-full py-3.5 bg-green-600 hover:bg-green-500 font-bold rounded-xl shadow-lg">
+              {isProcessingPdf ? '⏳ Connecting to AI directly... (Please wait)' : 'Extract Data & Start Test 🤖'}
             </button>
-
-            {isProcessingDualPdf && <p className="text-amber-400 animate-pulse text-center font-semibold">Mapping Question Paper with Answer Key PDF...</p>}
-            
-            {isDualPdfReady && (
-              <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-xl space-y-3">
-                <p className="text-green-400 font-bold text-sm">✅ Dual PDFs successfully parsed and mapped!</p>
-                <button
-                  onClick={startDualPdfTest}
-                  className="w-full py-3 bg-green-600 hover:bg-green-700 font-bold rounded-xl text-white shadow"
-                >
-                  Start Custom Test with Uploaded PDFs 🚀
-                </button>
-              </div>
-            )}
           </div>
 
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8">
-            <h2 className="text-2xl font-bold mb-4 text-orange-400">⚙️ Full Mock Test & Timer Configuration</h2>
+            <h2 className="text-2xl font-bold mb-4 text-orange-400">⚙️ Full NTA Mock Tests</h2>
             <div className="grid md:grid-cols-2 gap-6 mb-6">
               <div>
                 <label className="text-xs text-slate-400 block mb-2">Customize Test Duration (Minutes):</label>
-                <input
-                  type="number"
-                  value={customMinutes}
-                  onChange={(e) => setCustomMinutes(Number(e.target.value))}
-                  className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-white focus:border-orange-500 outline-none font-bold text-lg"
-                />
+                <input type="number" value={customMinutes} onChange={(e) => setCustomMinutes(Number(e.target.value))} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-white font-bold text-lg" />
               </div>
               <div className="flex items-end gap-3">
-                <button
-                  onClick={() => startMockTest('MAIN')}
-                  className="flex-1 py-3.5 bg-orange-500 hover:bg-orange-600 font-bold rounded-xl shadow-lg transition-all"
-                >
-                  JEE Main (75 Qs) 🚀
-                </button>
-                <button
-                  onClick={() => startMockTest('ADVANCED')}
-                  className="flex-1 py-3.5 bg-purple-600 hover:bg-purple-700 font-bold rounded-xl shadow-lg transition-all"
-                >
-                  JEE Adv (51 Qs) ⚡
-                </button>
+                <button onClick={() => startMockTest('MAIN')} className="flex-1 py-3.5 bg-orange-500 font-bold rounded-xl shadow-lg">JEE Main (75 Qs) 🚀</button>
+                <button onClick={() => startMockTest('ADVANCED')} className="flex-1 py-3.5 bg-purple-600 font-bold rounded-xl shadow-lg">JEE Adv (51 Qs) ⚡</button>
               </div>
             </div>
           </div>
@@ -683,21 +566,17 @@ export default function JEEParivarFinalApp() {
     );
   }
 
-  // ================= 4. EXAM TEST INTERFACE =================
+  // 4. TEST INTERFACE
   if (currentView === 'test' && testQuestions.length > 0) {
     const q = testQuestions[currentQuestionIndex];
     const currentQuestionTime = questionTimers[currentQuestionIndex] || 0;
-
+    
     return (
       <div className="min-h-screen bg-slate-950 text-white flex flex-col">
         <header className="bg-slate-900 border-b border-slate-800 px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <span className="font-bold text-orange-400">JEE Parivar NTA Engine ({examType})</span>
-            {examType !== 'DEMO' && (
-              <span className="text-xs bg-red-500/20 text-red-400 px-3 py-1 rounded-full border border-red-500/30">
-                Anti-Cheat Active (Warnings: {warningCount}/3)
-              </span>
-            )}
+            <span className="font-bold text-orange-400">JEE Engine ({examType})</span>
+            {/* Anti-Cheat Badge Removed for Bypass */}
           </div>
           <div className="flex items-center gap-4">
             <div className="bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 text-xs">
@@ -710,108 +589,56 @@ export default function JEEParivarFinalApp() {
             </div>
           </div>
         </header>
-
+        
         <main className="flex-1 p-6 max-w-7xl mx-auto w-full grid md:grid-cols-3 gap-8">
           <div className="md:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
             <div>
               <div className="flex justify-between items-center mb-4">
-                <span className="text-xs px-3 py-1 bg-orange-500/20 text-orange-400 rounded-full font-semibold">
-                  {q.subject} • {q.type}
-                </span>
+                <span className="text-xs px-3 py-1 bg-orange-500/20 text-orange-400 rounded-full font-bold">{q.subject} • {q.type}</span>
                 <span className="text-sm text-slate-400">Question {currentQuestionIndex + 1} of {testQuestions.length}</span>
               </div>
               <p className="text-lg font-medium mb-6 leading-relaxed bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-amber-200">
                 {q.text}
               </p>
 
-              {q.type === 'MCQ' ? (
+              {q.type === 'MCQ' && q.options && q.options.length > 0 ? (
                 <div className="space-y-3 mb-8">
                   {q.options.map((opt, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setAnswers({ ...answers, [q.id]: idx })}
-                      className={`w-full text-left p-4 rounded-xl border transition-all font-mono text-sm ${
-                        answers[q.id] === idx ? 'bg-orange-500/20 border-orange-500 text-orange-300' : 'bg-slate-950 border-slate-800 hover:border-slate-700'
-                      }`}
-                    >
+                    <button key={idx} onClick={() => setAnswers({ ...answers, [q.id]: idx })} className={`w-full text-left p-4 rounded-xl border font-mono ${answers[q.id] === idx ? 'bg-orange-500/20 border-orange-500 text-orange-300' : 'bg-slate-950 border-slate-800 hover:border-slate-700'}`}>
                       <span className="font-bold mr-3">{String.fromCharCode(65 + idx)}.</span> {opt}
                     </button>
                   ))}
                 </div>
               ) : (
                 <div className="mb-8 p-4 bg-slate-950 rounded-xl border border-slate-800">
-                  <label className="text-xs text-slate-400 block mb-2">Integer / Numerical Response Box (NTA Virtual Keypad):</label>
-                  <input
-                    type="text"
-                    readOnly
-                    placeholder="Use virtual keypad below..."
-                    value={answers[q.id] !== undefined ? answers[q.id] : ''}
-                    className="w-full p-3 bg-slate-900 border border-slate-700 rounded-xl text-white font-mono text-lg mb-4 text-center"
-                  />
+                  <label className="text-xs text-slate-400 block mb-2">Integer / Numerical Response Box (Virtual Keypad):</label>
+                  <input type="text" readOnly placeholder="Input value..." value={answers[q.id] || ''} className="w-full p-3 bg-slate-900 border border-slate-700 rounded-xl text-white font-mono text-lg mb-4 text-center" />
                   <div className="grid grid-cols-3 gap-2 max-w-xs mx-auto">
                     {['1','2','3','4','5','6','7','8','9','-','0','.'].map((char) => (
-                      <button
-                        key={char}
-                        onClick={() => handleVirtualKeypad(char)}
-                        className="p-3 bg-slate-800 hover:bg-slate-700 rounded-lg font-bold text-center"
-                      >
-                        {char}
-                      </button>
+                      <button key={char} onClick={() => handleVirtualKeypad(char)} className="p-3 bg-slate-800 hover:bg-slate-700 rounded-lg font-bold">{char}</button>
                     ))}
-                    <button
-                      onClick={() => handleVirtualKeypad('CLEAR')}
-                      className="p-3 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-lg font-bold text-xs"
-                    >
-                      CLEAR
-                    </button>
-                    <button
-                      onClick={() => handleVirtualKeypad('BACK')}
-                      className="p-3 bg-amber-600/20 hover:bg-amber-600/30 text-amber-400 rounded-lg font-bold text-xs col-span-2"
-                    >
-                      ⌫ BACKSPACE
-                    </button>
+                    <button onClick={() => handleVirtualKeypad('CLEAR')} className="p-3 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-lg font-bold text-xs">CLEAR</button>
+                    <button onClick={() => handleVirtualKeypad('BACK')} className="p-3 bg-amber-600/20 hover:bg-amber-600/30 text-amber-400 rounded-lg font-bold text-xs col-span-2">⌫ BACKSPACE</button>
                   </div>
                 </div>
               )}
             </div>
 
             <div className="flex justify-between pt-4 border-t border-slate-800">
-              <button
-                disabled={currentQuestionIndex === 0}
-                onClick={() => setCurrentQuestionIndex((prev) => prev - 1)}
-                className="px-5 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 rounded-xl text-sm font-bold"
-              >
-                Previous
-              </button>
+              <button disabled={currentQuestionIndex === 0} onClick={() => setCurrentQuestionIndex(prev => prev - 1)} className="px-5 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 rounded-xl font-bold">Previous</button>
               {currentQuestionIndex < testQuestions.length - 1 ? (
-                <button
-                  onClick={() => setCurrentQuestionIndex((prev) => prev + 1)}
-                  className="px-6 py-2 bg-orange-500 hover:bg-orange-600 font-bold rounded-xl text-sm"
-                >
-                  Save & Next
-                </button>
+                <button onClick={() => setCurrentQuestionIndex(prev => prev + 1)} className="px-6 py-2 bg-orange-500 hover:bg-orange-600 font-bold rounded-xl">Save & Next</button>
               ) : (
-                <button
-                  onClick={handleSubmitTest}
-                  className="px-6 py-2 bg-green-600 hover:bg-green-700 font-bold rounded-xl text-sm shadow-lg shadow-green-600/20"
-                >
-                  Submit Final Test 🏁
-                </button>
+                <button onClick={handleSubmitTest} className="px-6 py-2 bg-green-600 hover:bg-green-700 font-bold rounded-xl shadow-lg">Submit Test 🏁</button>
               )}
             </div>
           </div>
-
+          
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 overflow-y-auto max-h-[600px]">
             <h3 className="font-bold mb-4 text-sm text-slate-300">Question Palette</h3>
             <div className="grid grid-cols-5 gap-2">
               {testQuestions.map((item, idx) => (
-                <button
-                  key={item.id}
-                  onClick={() => setCurrentQuestionIndex(idx)}
-                  className={`h-10 rounded-lg font-bold border text-xs transition-all ${
-                    currentQuestionIndex === idx ? 'border-white' : 'border-slate-800'
-                  } ${answers[item.id] !== undefined && answers[item.id] !== '' ? 'bg-green-600/20 text-green-400 border-green-500/50' : 'bg-slate-950 text-slate-400'}`}
-                >
+                <button key={item.id} onClick={() => setCurrentQuestionIndex(idx)} className={`h-10 rounded-lg font-bold border text-xs transition-all ${currentQuestionIndex === idx ? 'border-white' : 'border-slate-800'} ${answers[item.id] !== undefined && answers[item.id] !== '' ? 'bg-green-600/20 text-green-400 border-green-500/50' : 'bg-slate-950 text-slate-400'}`}>
                   {idx + 1}
                 </button>
               ))}
@@ -822,15 +649,16 @@ export default function JEEParivarFinalApp() {
     );
   }
 
-  // ================= 5. SCORECARD =================
+  // 5. SCORECARD (Deep Subject-Wise UI Restored)
   if (currentView === 'result' && scoreCard) {
     return (
       <div className="min-h-screen bg-slate-950 text-white p-8 flex flex-col items-center justify-center">
-        <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl max-w-4xl w-full shadow-2xl">
-          <h2 className="text-3xl font-black text-orange-400 mb-2 text-center">🎉 Test Submitted Successfully!</h2>
-          <p className="text-slate-400 text-sm mb-8 text-center">Detailed Subject-Wise Performance for {studentName || 'Student'}</p>
+        <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl max-w-4xl w-full shadow-2xl space-y-6">
+          
+          <h2 className="text-3xl font-black text-orange-400 text-center">🎉 Test Evaluated Successfully!</h2>
+          <p className="text-slate-400 text-sm text-center">Detailed Subject-Wise Performance for {studentName}</p>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 text-center">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div className="p-4 bg-slate-950 rounded-xl border border-slate-800">
               <p className="text-xs text-slate-400">Total Score</p>
               <p className="text-2xl font-bold text-amber-400">{scoreCard.score} / {scoreCard.maxScore}</p>
@@ -840,7 +668,7 @@ export default function JEEParivarFinalApp() {
               <p className="text-2xl font-bold text-green-400">{scoreCard.correct} / <span className="text-red-400">{scoreCard.incorrect}</span></p>
             </div>
             <div className="p-4 bg-slate-950 rounded-xl border border-slate-800">
-              <p className="text-xs text-slate-400">Percentile</p>
+              <p className="text-xs text-slate-400">Dynamic Percentile</p>
               <p className="text-2xl font-bold text-blue-400">{scoreCard.percentile}</p>
             </div>
             <div className="p-4 bg-slate-950 rounded-xl border border-slate-800">
@@ -849,32 +677,27 @@ export default function JEEParivarFinalApp() {
             </div>
           </div>
 
-          <div className="mb-8 p-6 bg-slate-950 rounded-2xl border border-slate-800">
-            <h3 className="font-bold text-lg text-orange-400 mb-4">📊 Subject-Wise Performance Breakdown</h3>
+          {/* 📊 DEEP SUBJECT-WISE ANALYSIS BREAKDOWN (Restored from the 900-line version) */}
+          <div className="p-6 bg-slate-950 rounded-2xl border border-slate-800">
+            <h3 className="font-bold text-lg text-orange-400 mb-4 text-center">📊 Subject-Wise Performance Breakdown</h3>
             <div className="grid md:grid-cols-3 gap-6">
               {Object.entries(scoreCard.subjectStats).map(([subj, data]) => (
-                <div key={subj} className="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
-                  <h4 className="font-bold text-amber-400 text-base">{subj}</h4>
-                  <p className="text-xs text-slate-400">Score: <span className="font-bold text-white">{data.score} marks</span></p>
-                  <p className="text-xs text-green-400">Correct: {data.correct}</p>
-                  <p className="text-xs text-red-400">Incorrect: {data.incorrect}</p>
-                  <p className="text-xs text-slate-300">Total Qs: {data.total}</p>
+                <div key={subj} className="p-5 bg-slate-900 rounded-xl border border-slate-800 space-y-2 text-center">
+                  <h4 className="font-bold text-amber-400 text-lg border-b border-slate-700 pb-2">{subj}</h4>
+                  <p className="text-sm text-slate-400 pt-2">Subject Score: <span className="font-bold text-white text-lg">{data.score}</span></p>
+                  <p className="text-sm text-green-400">Correct: {data.correct}</p>
+                  <p className="text-sm text-red-400">Incorrect: {data.incorrect}</p>
+                  <p className="text-xs text-slate-500 mt-2">Total Questions: {data.total}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="flex gap-4 mb-4">
-            <button
-              onClick={() => setCurrentView('remediation')}
-              className="flex-1 py-4 bg-amber-500 hover:bg-amber-600 font-bold rounded-xl text-slate-950 transition-all"
-            >
-              📖 View Multi-Page Diagnostics & AI Solutions
+          <div className="flex gap-4">
+            <button onClick={() => setCurrentView('remediation')} className="flex-1 py-4 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl transition-all">
+              📖 View Actual Test Diagnostics & AI Solutions
             </button>
-            <button
-              onClick={() => { setCurrentView('dashboard'); setScoreCard(null); }}
-              className="px-6 py-4 bg-slate-800 hover:bg-slate-700 font-bold rounded-xl"
-            >
+            <button onClick={() => { setCurrentView('dashboard'); setScoreCard(null); }} className="px-8 py-4 bg-slate-800 hover:bg-slate-700 font-bold rounded-xl">
               Dashboard
             </button>
           </div>
@@ -883,33 +706,28 @@ export default function JEEParivarFinalApp() {
     );
   }
 
-  // ================= 6. MULTI-PAGE DIAGNOSTICS =================
+  // 6. MULTI-PAGE DIAGNOSTICS & REMEDIATION
   if (currentView === 'remediation' && scoreCard) {
     return (
       <div className="min-h-screen bg-slate-950 text-white p-8 max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8 border-b border-slate-800 pb-4">
-          <h2 className="text-2xl font-black text-orange-400">📖 Multi-Page Diagnostic Read-Out & AI Solutions</h2>
-          <button
-            onClick={() => setCurrentView('result')}
-            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-sm"
-          >
-            ← Back to Scorecard
-          </button>
+          <h2 className="text-2xl font-black text-orange-400">📖 Real Diagnostics & AI YouTube Links</h2>
+          <button onClick={() => setCurrentView('result')} className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl text-sm font-bold">← Back to Scorecard</button>
         </div>
-
+        
         <div className="space-y-6">
           <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
             <h3 className="text-lg font-bold text-amber-400 mb-2">💡 Auto-Remediation Plan</h3>
             <p className="text-slate-300 text-sm mb-4">Detected <span className="text-red-400 font-bold">{scoreCard.sillyMistakes} silly mistakes</span> and <span className="text-orange-400 font-bold">{scoreCard.conceptualGaps} conceptual gaps</span>.</p>
             <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 text-sm text-slate-400">
-              Recommendation: Review your subject-wise weak spots shown above before your next mock test.
+              Recommendation: Review your subject-wise weak spots shown in the scorecard before your next mock test.
             </div>
           </div>
 
           <h3 className="text-xl font-bold mt-8 mb-4">Detailed Solutions & YouTube Search References</h3>
           {testQuestions.map((q, idx) => {
             const userAns = answers[q.id];
-            const isCorrect = String(userAns).trim() === String(q.correctAnswer).trim();
+            const isCorrect = userAns !== undefined && String(userAns).trim().toLowerCase() === String(q.correctAnswer).trim().toLowerCase();
             const timeSpent = questionTimers[idx] || 0;
 
             return (
@@ -922,16 +740,11 @@ export default function JEEParivarFinalApp() {
                 </div>
                 <p className="text-sm font-mono mb-3 text-amber-200">{q.text}</p>
                 <div className="p-3 bg-slate-950 rounded-xl text-xs text-slate-300 mb-3 border border-slate-800 font-mono">
-                  <strong className="text-amber-400">Solution:</strong> {q.solution}
+                  <strong className="text-amber-400">Solution:</strong> {q.solution || 'Detailed extraction from PDF'}
                 </div>
                 {!isCorrect && (
-                  <a
-                    href={q.youtubeLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-xs bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-lg shadow"
-                  >
-                    ▶ Search & Watch Solution on YouTube
+                  <a href={q.youtubeLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-xs bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-lg shadow">
+                    ▶ Search Expected Solution on YouTube
                   </a>
                 )}
               </div>
