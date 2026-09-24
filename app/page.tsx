@@ -8,14 +8,11 @@ import 'katex/dist/katex.min.css';
 import Latex from 'react-latex-next';
 
 // ============================================================================
-// 🔑 DIRECT OPENROUTER API KEY CONFIGURATION (Hardcoded for zero errors)
+// 🔑 DIRECT OPENROUTER API KEY CONFIGURATION
 // ============================================================================
 const OPENROUTER_API_KEY = "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"; 
 
 export default function JEEParivarUltimateLatexApp() {
-  // ============================================================================
-  // 1. STATE MANAGEMENT
-  // ============================================================================
   const [currentView, setCurrentView] = useState<'landing' | 'login' | 'dashboard' | 'test' | 'result' | 'remediation' | 'focus'>('landing');
   const [authMethod, setAuthMethod] = useState<'choice' | 'phone' | 'google' | 'name'>('choice');
   
@@ -39,7 +36,6 @@ export default function JEEParivarUltimateLatexApp() {
   const [isProcessingPdf, setIsProcessingPdf] = useState(false);
   const [scoreCard, setScoreCard] = useState(null);
 
-  // Focus Mode & Lockdown States
   const [focusMinutes, setFocusMinutes] = useState(25);
   const [focusTimerSeconds, setFocusTimerSeconds] = useState(25 * 60);
   const [isFocusActive, setIsFocusActive] = useState(false);
@@ -48,9 +44,6 @@ export default function JEEParivarUltimateLatexApp() {
   const [focusSessions, setFocusSessions] = useState([]);
   const [analyticsTab, setAnalyticsTab] = useState<'today' | 'week' | 'month' | 'year'>('today');
 
-  // ============================================================================
-  // 2. LOCALSTORAGE PERSISTENCE
-  // ============================================================================
   useEffect(() => {
     const savedFocus = localStorage.getItem('jee_focus_sessions');
     if (savedFocus) {
@@ -93,9 +86,6 @@ export default function JEEParivarUltimateLatexApp() {
     localStorage.setItem('jee_focus_sessions', JSON.stringify(updated));
   };
 
-  // ============================================================================
-  // 3. TIMERS & LOCKDOWN LOGIC
-  // ============================================================================
   useEffect(() => {
     let interval;
     if (currentView === 'test' && timer > 0 && !scoreCard) {
@@ -155,9 +145,6 @@ export default function JEEParivarUltimateLatexApp() {
     return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // ============================================================================
-  // 4. TEST INTERFACE ACTIONS
-  // ============================================================================
   const handleVirtualKeypad = (char) => {
     const q = testQuestions[currentQuestionIndex];
     if (!q) return;
@@ -223,7 +210,7 @@ export default function JEEParivarUltimateLatexApp() {
   const totalHoursStudied = (totalMinutesStudied / 60).toFixed(1);
 
   // ============================================================================
-  // 5. OPENROUTER PDF PARSING (With Authentication Header)
+  // OPENROUTER PDF PARSING (Using standard stable model)
   // ============================================================================
   const handleRealPdfUploadAndParse = async () => {
     if (!questionFile) {
@@ -261,7 +248,7 @@ export default function JEEParivarUltimateLatexApp() {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model: "google/gemini-flash-1.5:free",
+          model: "google/gemini-flash-1.5", // 👈 Stable OpenRouter Model
           messages: [{ role: "user", content: contentArray }],
           temperature: 0.1
         })
@@ -304,9 +291,6 @@ export default function JEEParivarUltimateLatexApp() {
     }
   };
 
-  // ============================================================================
-  // 6. DEMO & MOCK TEST GENERATORS
-  // ============================================================================
   const startDemoTest = () => {
     setExamType('DEMO');
     setTimer(300);
@@ -384,9 +368,6 @@ export default function JEEParivarUltimateLatexApp() {
     setCurrentView('test');
   };
 
-  // ============================================================================
-  // 7. TEST SUBMISSION & SCORECARD GENERATION
-  // ============================================================================
   const handleSubmitTest = () => {
     let correct = 0;
     let incorrect = 0;
@@ -439,10 +420,6 @@ export default function JEEParivarUltimateLatexApp() {
     setCurrentView('result');
   };
 
-  // ============================================================================
-  // VIEWS RENDER
-  // ============================================================================
-
   if (currentView === 'landing') {
     return (
       <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-orange-500 selection:text-white">
@@ -457,8 +434,8 @@ export default function JEEParivarUltimateLatexApp() {
         </nav>
         <header className="relative overflow-hidden py-24 px-6 text-center bg-gradient-to-b from-slate-900 to-slate-950 border-b border-slate-900">
           <div className="max-w-4xl mx-auto relative z-10">
-            <div className="inline-block mb-6 px-4 py.1.5 rounded-full bg-slate-800 text-amber-400 text-sm font-semibold border border-slate-700 shadow-md">🔥 Target: AIR Under 1000 • Developed by Amit</div>
-            <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-6 leading-tight">Master JEE with <br /> <span className="bg-gradient-to-r from-orange-400 via-amber-300 to-yellow-500 bg-clip-text text-transparent">Free OpenRouter AI & Focus Analytics</span></h1>
+            <div className="inline-block mb-6 px-4 py-1.5 rounded-full bg-slate-800 text-amber-400 text-sm font-semibold border border-slate-700 shadow-md">🔥 Target: AIR Under 1000 • Developed by Amit</div>
+            <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-6 leading-tight">Master JEE with <br /> <span className="bg-gradient-to-r from-orange-400 via-amber-300 to-yellow-500 bg-clip-text text-transparent">OpenRouter AI & Focus Analytics</span></h1>
             <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">Completely bypass anti-cheat restrictions. Upload PDFs directly from your browser to AI for exact extraction. Deep subject-wise analysis and LaTeX equation rendering included.</p>
             <button onClick={() => setCurrentView('login')} className="px-10 py-4 bg-orange-500 hover:bg-orange-600 font-black text-lg rounded-xl shadow-xl transition-all transform hover:-translate-y-1">Enter Portal & Login 🎯</button>
           </div>
@@ -591,8 +568,8 @@ export default function JEEParivarUltimateLatexApp() {
 
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-10 space-y-8 shadow-xl">
             <div>
-              <h2 className="text-2xl font-black text-orange-400 flex items-center gap-2">🧠 Free OpenRouter PDF Extraction (Math Mode)</h2>
-              <p className="text-slate-400 text-sm mt-2">Upload real Question Papers. Powered by OpenRouter free tier model for exact LaTeX extraction.</p>
+              <h2 className="text-2xl font-black text-orange-400 flex items-center gap-2">🧠 OpenRouter PDF Extraction (Math Mode)</h2>
+              <p className="text-slate-400 text-sm mt-2">Upload real Question Papers. Powered by OpenRouter stable model.</p>
             </div>
             <div className="grid md:grid-cols-2 gap-6 md:gap-8">
               <div className="p-6 bg-slate-950 border border-slate-800 rounded-2xl transition-colors hover:border-orange-500/50">
@@ -607,7 +584,7 @@ export default function JEEParivarUltimateLatexApp() {
               </div>
             </div>
             <button onClick={handleRealPdfUploadAndParse} disabled={isProcessingPdf} className="w-full py-4 bg-green-600 hover:bg-green-500 font-black text-lg rounded-xl shadow-lg shadow-green-600/20 transition-all">
-              {isProcessingPdf ? '⏳ Processing PDF via Free AI...' : 'Extract Math Data & Start Test 🤖'}
+              {isProcessingPdf ? '⏳ Processing PDF via AI...' : 'Extract Math Data & Start Test 🤖'}
             </button>
           </div>
           
