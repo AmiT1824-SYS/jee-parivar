@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 
-export default function JEEParivarSubjectWiseApp() {
+export default function JEEParivarVerifiedApp() {
   // Navigation & Auth States
   const [currentView, setCurrentView] = useState<'landing' | 'login' | 'dashboard' | 'test' | 'result' | 'remediation'>('landing');
   const [authMethod, setAuthMethod] = useState<'choice' | 'phone' | 'google' | 'name'>('choice');
@@ -17,7 +17,7 @@ export default function JEEParivarSubjectWiseApp() {
   // Exam Mode & Configuration States
   const [examType, setExamType] = useState<'MAIN' | 'ADVANCED' | 'DEMO' | 'DUAL_PDF'>('MAIN');
   const [customMinutes, setCustomMinutes] = useState(180);
-  const [timer, setTimer] = useState(10800); // Overall Test Timer
+  const [timer, setTimer] = useState(10800);
   
   // Test Session States
   const [testQuestions, setTestQuestions] = useState([]);
@@ -25,8 +25,8 @@ export default function JEEParivarSubjectWiseApp() {
   const [answers, setAnswers] = useState({});
   const [warningCount, setWarningCount] = useState(0);
 
-  // Per-Question & Subject-Wise Analytics Tracking
-  const [questionTimers, setQuestionTimers] = useState({}); // Tracks seconds spent per question index
+  // Per-Question Timer Tracking
+  const [questionTimers, setQuestionTimers] = useState({});
 
   // Dual PDF Upload States
   const [questionPdfName, setQuestionPdfName] = useState('');
@@ -59,7 +59,7 @@ export default function JEEParivarSubjectWiseApp() {
     };
   }, [currentView, examType]);
 
-  // GLOBAL TEST TIMER & PER-QUESTION TIMER
+  // TIMERS EFFECT
   useEffect(() => {
     let interval;
     if (currentView === 'test' && timer > 0 && !scoreCard) {
@@ -83,7 +83,6 @@ export default function JEEParivarSubjectWiseApp() {
     return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // VIRTUAL KEYPAD FOR INTEGER QUESTIONS
   const handleVirtualKeypad = (char) => {
     const q = testQuestions[currentQuestionIndex];
     if (!q) return;
@@ -98,49 +97,53 @@ export default function JEEParivarSubjectWiseApp() {
     }
   };
 
+  // Helper to generate dynamic YouTube search links based on question text
+  const getYouTubeSearchLink = (text) => {
+    const query = encodeURIComponent(text.slice(0, 50) + ' JEE solution');
+    return `https://www.youtube.com/results?search_query=${query}`;
+  };
+
   // DEMO TEST GENERATOR
   const startDemoTest = () => {
     setExamType('DEMO');
     setTimer(300);
-    setTestQuestions([
+    const demoQs = [
       {
         id: 991,
         subject: 'Physics',
         type: 'MCQ',
-        text: '[Demo Test] Angular frequency \\omega for potential V(x) = \\frac{1}{2}kx^2 is:',
-        options: ['\\sqrt{k/m}', '\\sqrt{m/k}', 'k/m', 'm/k'],
+        text: 'A particle moves under potential V(x) = 1/2 kx². Find angular frequency omega.',
+        options: ['sqrt(k/m)', 'sqrt(m/k)', 'k/m', 'm/k'],
         correctAnswer: 0,
-        solution: 'For standard harmonic oscillator, \\omega = \\sqrt{k/m}.',
-        youtubeLink: 'https://www.youtube.com/results?search_query=shm+potential+energy+jee'
+        solution: 'For standard harmonic oscillator, omega = sqrt(k/m).'
       },
       {
         id: 992,
         subject: 'Chemistry',
         type: 'MCQ',
-        text: '[Demo Test] Unit of first-order rate constant k is:',
+        text: 'What is the unit of first-order rate constant k?',
         options: ['s⁻¹', 'mol L⁻¹ s⁻¹', 'L mol⁻¹ s⁻¹', 'None'],
         correctAnswer: 0,
-        solution: 'First-order rate constant unit is s⁻¹.',
-        youtubeLink: 'https://www.youtube.com/results?search_query=chemical+kinetics+first+order+jee'
+        solution: 'First-order rate constant unit is time inverse (s⁻¹).'
       },
       {
         id: 993,
         subject: 'Mathematics',
         type: 'INTEGER',
-        text: '[Demo Test] Find value of x if x + 5 = 9.',
+        text: 'Find value of x if x + 5 = 9.',
         options: [],
         correctAnswer: '4',
-        solution: 'Simple linear equation: x = 9 - 5 = 4.',
-        youtubeLink: 'https://www.youtube.com/results?search_query=linear+equations+jee'
+        solution: 'Simple linear equation: x = 9 - 5 = 4.'
       }
-    ]);
+    ];
+    demoQs.forEach(q => q.youtubeLink = getYouTubeSearchLink(q.text));
+    setTestQuestions(demoQs);
     setCurrentQuestionIndex(0);
     setAnswers({});
     setQuestionTimers({});
     setCurrentView('test');
   };
 
-  // DUAL PDF UPLOAD HANDLERS
   const handleQuestionPdfUpload = (e) => {
     const file = e.target.files[0];
     if (file) setQuestionPdfName(file.name);
@@ -160,16 +163,15 @@ export default function JEEParivarSubjectWiseApp() {
     setTimeout(() => {
       setIsProcessingDualPdf(false);
       setIsDualPdfReady(true);
-      setTestQuestions([
+      const parsed = [
         {
           id: 701,
           subject: 'Physics',
           type: 'MCQ',
-          text: `[Parsed from ${questionPdfName}] Electric potential at distance r from charge q:`,
+          text: `[Parsed from ${questionPdfName}] Electric potential at distance r from charge q.`,
           options: ['kq/r', 'kq/r²', 'kq²/r', 'Zero'],
           correctAnswer: 0,
-          solution: `Mapped from ${answerKeyPdfName}. Option A is correct.`,
-          youtubeLink: 'https://www.youtube.com/results?search_query=electric+potential+point+charge+jee'
+          solution: `Mapped with ${answerKeyPdfName}. Option A is correct.`
         },
         {
           id: 702,
@@ -178,10 +180,11 @@ export default function JEEParivarSubjectWiseApp() {
           text: `[Parsed from ${questionPdfName}] Find derivative of x³ at x = 2.`,
           options: [],
           correctAnswer: '12',
-          solution: `Mapped from ${answerKeyPdfName}. Derivative is 12.`,
-          youtubeLink: 'https://www.youtube.com/results?search_query=power+rule+derivatives+jee'
+          solution: `Mapped with ${answerKeyPdfName}. Derivative is 12.`
         }
-      ]);
+      ];
+      parsed.forEach(q => q.youtubeLink = getYouTubeSearchLink(q.text));
+      setTestQuestions(parsed);
     }, 2000);
   };
 
@@ -205,27 +208,29 @@ export default function JEEParivarSubjectWiseApp() {
       let idCounter = 1;
       subjects.forEach((subj) => {
         for (let i = 1; i <= 20; i++) {
+          const textVal = `[JEE Main 2026] MCQ Question ${i} in ${subj} testing fundamental laws.`;
           generated.push({
             id: idCounter++,
             subject: subj,
             type: 'MCQ',
-            text: `[JEE Main 2026] MCQ Question ${i} in ${subj} testing fundamental laws.`,
+            text: textVal,
             options: ['Option A', 'Option B', 'Option C', 'Option D'],
             correctAnswer: 0,
             solution: `Detailed step-by-step solution for ${subj} Q${i}.`,
-            youtubeLink: `https://www.youtube.com/results?search_query=jee+main+${subj}`
+            youtubeLink: getYouTubeSearchLink(textVal)
           });
         }
         for (let i = 1; i <= 5; i++) {
+          const textVal = `[JEE Main 2026] Numerical Integer Question ${i} in ${subj}.`;
           generated.push({
             id: idCounter++,
             subject: subj,
             type: 'INTEGER',
-            text: `[JEE Main 2026] Numerical Integer Question ${i} in ${subj}.`,
+            text: textVal,
             options: [],
             correctAnswer: '4',
             solution: `Evaluated numerical result for ${subj} integer Q${i}.`,
-            youtubeLink: `https://www.youtube.com/results?search_query=jee+numerical+${subj}`
+            youtubeLink: getYouTubeSearchLink(textVal)
           });
         }
       });
@@ -233,27 +238,29 @@ export default function JEEParivarSubjectWiseApp() {
       let idCounter = 1;
       subjects.forEach((subj) => {
         for (let i = 1; i <= 10; i++) {
+          const textVal = `[JEE Advanced] Advanced MCQ ${i} in ${subj}.`;
           generated.push({
             id: idCounter++,
             subject: subj,
             type: 'MCQ',
-            text: `[JEE Advanced] Advanced MCQ ${i} in ${subj}.`,
+            text: textVal,
             options: ['Choice P', 'Choice Q', 'Choice R', 'Choice S'],
             correctAnswer: 2,
             solution: `Advanced analytical solution for ${subj} Q${i}.`,
-            youtubeLink: `https://www.youtube.com/results?search_query=jee+advanced+${subj}`
+            youtubeLink: getYouTubeSearchLink(textVal)
           });
         }
         for (let i = 1; i <= 7; i++) {
+          const textVal = `[JEE Advanced] Integer question ${i} in ${subj}.`;
           generated.push({
             id: idCounter++,
             subject: subj,
             type: 'INTEGER',
-            text: `[JEE Advanced] Integer question ${i} in ${subj}.`,
+            text: textVal,
             options: [],
             correctAnswer: '7',
             solution: `Advanced derivation for ${subj} integer Q${i}.`,
-            youtubeLink: `https://www.youtube.com/results?search_query=jee+advanced+integer+${subj}`
+            youtubeLink: getYouTubeSearchLink(textVal)
           });
         }
       });
@@ -266,7 +273,6 @@ export default function JEEParivarSubjectWiseApp() {
     setCurrentView('test');
   };
 
-  // 🎯 SUBJECT-WISE ANALYSIS & ACCURATE SCORECARD CALCULATOR
   const handleSubmitTest = () => {
     let correct = 0;
     let incorrect = 0;
@@ -367,11 +373,11 @@ export default function JEEParivarSubjectWiseApp() {
             <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-6 leading-tight">
               Master JEE with <br />
               <span className="bg-gradient-to-r from-orange-400 via-amber-300 to-yellow-500 bg-clip-text text-transparent">
-                Subject-Wise Analysis & Question Timers
+                Exact NTA Engine & Verified Features
               </span>
             </h1>
             <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto">
-              Real-time per-question time tracking, deep subject-wise breakdowns (Physics, Chem, Math), and accurate rank predictors.
+              Dual PDF uploads, exact question-wise YouTube search query matching, subject-wise analytics, and rank predictors.
             </p>
             <button
               onClick={() => setCurrentView('login')}
@@ -580,7 +586,6 @@ export default function JEEParivarSubjectWiseApp() {
         </header>
 
         <main className="flex-1 p-8 max-w-4xl mx-auto w-full space-y-8">
-          {/* QUICK DEMO TEST */}
           <div className="bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-slate-900 border border-amber-500/40 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-4">
             <div>
               <span className="text-xs px-2.5 py-1 bg-amber-500/20 text-amber-400 rounded-full font-bold">⚡ Quick Check</span>
@@ -595,7 +600,6 @@ export default function JEEParivarSubjectWiseApp() {
             </button>
           </div>
 
-          {/* DUAL PDF UPLOAD SECTION */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 space-y-6">
             <h2 className="text-2xl font-bold text-orange-400">📁 Dual PDF Upload Section</h2>
             <p className="text-slate-400 text-sm">Upload Question Paper PDF in Section 1 and Answer Key PDF in Section 2.</p>
@@ -679,7 +683,7 @@ export default function JEEParivarSubjectWiseApp() {
     );
   }
 
-  // ================= 4. EXAM TEST INTERFACE WITH PER-QUESTION TIMER =================
+  // ================= 4. EXAM TEST INTERFACE =================
   if (currentView === 'test' && testQuestions.length > 0) {
     const q = testQuestions[currentQuestionIndex];
     const currentQuestionTime = questionTimers[currentQuestionIndex] || 0;
@@ -696,12 +700,10 @@ export default function JEEParivarSubjectWiseApp() {
             )}
           </div>
           <div className="flex items-center gap-4">
-            {/* Per-Question Timer Badge */}
             <div className="bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 text-xs">
               <span className="text-slate-400">This Q Time: </span>
               <span className="font-mono font-bold text-orange-400">{currentQuestionTime}s</span>
             </div>
-            {/* Global Test Timer */}
             <div className="bg-slate-950 px-4 py-2 rounded-xl border border-slate-800">
               <span className="text-xs text-slate-400">Total Time: </span>
               <span className="font-mono text-lg font-bold text-amber-400">{formatTime(timer)}</span>
@@ -820,7 +822,7 @@ export default function JEEParivarSubjectWiseApp() {
     );
   }
 
-  // ================= 5. SCORECARD WITH SUBJECT-WISE ANALYSIS =================
+  // ================= 5. SCORECARD =================
   if (currentView === 'result' && scoreCard) {
     return (
       <div className="min-h-screen bg-slate-950 text-white p-8 flex flex-col items-center justify-center">
@@ -847,7 +849,6 @@ export default function JEEParivarSubjectWiseApp() {
             </div>
           </div>
 
-          {/* 📊 DEEP SUBJECT-WISE ANALYSIS BREAKDOWN */}
           <div className="mb-8 p-6 bg-slate-950 rounded-2xl border border-slate-800">
             <h3 className="font-bold text-lg text-orange-400 mb-4">📊 Subject-Wise Performance Breakdown</h3>
             <div className="grid md:grid-cols-3 gap-6">
@@ -857,7 +858,7 @@ export default function JEEParivarSubjectWiseApp() {
                   <p className="text-xs text-slate-400">Score: <span className="font-bold text-white">{data.score} marks</span></p>
                   <p className="text-xs text-green-400">Correct: {data.correct}</p>
                   <p className="text-xs text-red-400">Incorrect: {data.incorrect}</p>
-                  <p className="text-xs text-slate-300">Total Qs in Subject: {data.total}</p>
+                  <p className="text-xs text-slate-300">Total Qs: {data.total}</p>
                 </div>
               ))}
             </div>
@@ -905,7 +906,7 @@ export default function JEEParivarSubjectWiseApp() {
             </div>
           </div>
 
-          <h3 className="text-xl font-bold mt-8 mb-4">Detailed Equation Solutions & YouTube References</h3>
+          <h3 className="text-xl font-bold mt-8 mb-4">Detailed Solutions & YouTube Search References</h3>
           {testQuestions.map((q, idx) => {
             const userAns = answers[q.id];
             const isCorrect = String(userAns).trim() === String(q.correctAnswer).trim();
@@ -921,7 +922,7 @@ export default function JEEParivarSubjectWiseApp() {
                 </div>
                 <p className="text-sm font-mono mb-3 text-amber-200">{q.text}</p>
                 <div className="p-3 bg-slate-950 rounded-xl text-xs text-slate-300 mb-3 border border-slate-800 font-mono">
-                  <strong className="text-amber-400">Equation Breakdown:</strong> {q.solution}
+                  <strong className="text-amber-400">Solution:</strong> {q.solution}
                 </div>
                 {!isCorrect && (
                   <a
@@ -930,7 +931,7 @@ export default function JEEParivarSubjectWiseApp() {
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 text-xs bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-lg shadow"
                   >
-                    ▶ Watch Equation Solution on YouTube
+                    ▶ Search & Watch Solution on YouTube
                   </a>
                 )}
               </div>
