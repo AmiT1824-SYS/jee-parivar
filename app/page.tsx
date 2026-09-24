@@ -3,43 +3,80 @@
 
 import React, { useState, useEffect } from 'react';
 
+// 👇 YAHAN SE LATEX IMPORTS ADD HUE HAIN 👇
+// Ensure you ran: npm install react-latex-next katex --legacy-peer-deps
+import 'katex/dist/katex.min.css';
+import Latex from 'react-latex-next';
+
+// ============================================================================
+// 🔑 GEMINI API KEY CONFIGURATION
+// ============================================================================
 // 👇 YAHAN APNI NAYI GEMINI API KEY DAALIYE 👇
-const GEMINI_API_KEY = "YAHAN_APNI_ASLI_API_KEY_DAALO"; 
+// 👇 Asli key yahan nahi likhni hai, isko Environment Variable se lenge 👇
+const GEMINI_API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY || ""; 
+// 👆 ========================================= 👆
 // 👆 ========================================= 👆
 
-export default function JEEParivarUltimateApp() {
-  // 1. Navigation & Auth States
+export default function JEEParivarUltimateLatexApp() {
+  // ============================================================================
+  // 1. STATE MANAGEMENT
+  // ============================================================================
+  
+  // Navigation & Auth States
   const [currentView, setCurrentView] = useState<'landing' | 'login' | 'dashboard' | 'test' | 'result' | 'remediation'>('landing');
   const [authMethod, setAuthMethod] = useState<'choice' | 'phone' | 'google' | 'name'>('choice');
   
-  // 2. Credentials
+  // Credentials
   const [studentName, setStudentName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
   const [isOtpSent, setIsOtpSent] = useState(false);
   
-  // 3. Exam Mode & Configuration States
+  // Exam Mode & Configuration States
   const [examType, setExamType] = useState<'MAIN' | 'ADVANCED' | 'DEMO' | 'REAL_PDF'>('MAIN');
   const [customMinutes, setCustomMinutes] = useState(180);
-  const [timer, setTimer] = useState(10800);
+  const [timer, setTimer] = useState(10800); // Default 3 hours
   
-  // 4. Test Session States
+  // Test Session States
   const [testQuestions, setTestQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [questionTimers, setQuestionTimers] = useState({}); // Tracking time per question
+  const [warningCount, setWarningCount] = useState(0);
 
-  // 5. Dual Real PDF Upload States
+  // Dual Real PDF Upload States
   const [questionFile, setQuestionFile] = useState(null);
   const [answerKeyFile, setAnswerKeyFile] = useState(null);
   const [isProcessingPdf, setIsProcessingPdf] = useState(false);
 
-  // 6. Scorecard State
+  // Scorecard State
   const [scoreCard, setScoreCard] = useState(null);
 
-  // 🛡️ SECURITY BYPASSED: Anti-cheat warnings removed as requested 🛡️
+  // ============================================================================
+  // 2. SECURITY & ANTI-CHEAT SYSTEM (BYPASSED)
+  // ============================================================================
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && currentView === 'test' && examType !== 'DEMO') {
+        // Anti-cheat logic is bypassed. Normally it would increment warningCount here.
+        console.log("Tab switched, but security is bypassed. No warning issued.");
+      }
+    };
+    const handleContextMenu = (e) => {
+      // e.preventDefault(); // Commented out to bypass right-click restriction
+    };
 
-  // 7. Global Timer & Per-Question Timer Logic
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener('contextmenu', handleContextMenu);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener('contextmenu', handleContextMenu);
+    };
+  }, [currentView, examType]);
+
+  // ============================================================================
+  // 3. GLOBAL TIMER & PER-QUESTION TIMER LOGIC
+  // ============================================================================
   useEffect(() => {
     let interval;
     if (currentView === 'test' && timer > 0 && !scoreCard) {
@@ -63,7 +100,9 @@ export default function JEEParivarUltimateApp() {
     return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // 8. Virtual Keypad Logic for Integer Questions
+  // ============================================================================
+  // 4. VIRTUAL KEYPAD FOR INTEGER QUESTIONS
+  // ============================================================================
   const handleVirtualKeypad = (char) => {
     const q = testQuestions[currentQuestionIndex];
     if (!q) return;
@@ -78,13 +117,19 @@ export default function JEEParivarUltimateApp() {
     }
   };
 
-  // 9. Dynamic YouTube Link Generator
+  // ============================================================================
+  // 5. YOUTUBE DYNAMIC SEARCH LINK GENERATOR
+  // ============================================================================
   const getYouTubeSearchLink = (text) => {
-    const query = encodeURIComponent(text.slice(0, 50) + ' JEE solution');
+    // We clean up LaTeX symbols to make the YouTube search query readable
+    const cleanText = text.replace(/[\$\\]/g, ' ').slice(0, 50).trim();
+    const query = encodeURIComponent(cleanText + ' JEE solution video');
     return `https://www.youtube.com/results?search_query=${query}`;
   };
 
-  // 🚀 10. DIRECT API CALL (FRONTEND TO GEMINI) 🚀
+  // ============================================================================
+  // 6. DIRECT FRONTEND-TO-GEMINI API CALL (REAL PDF PARSER)
+  // ============================================================================
   const handleRealPdfUploadAndParse = async () => {
     if (!questionFile) {
       alert('Please upload the Question Paper PDF first!');
@@ -93,9 +138,9 @@ export default function JEEParivarUltimateApp() {
 
     setIsProcessingPdf(true);
 
-    // Smart Fallback if API Key is missing
+    // Smart Fallback if API Key is missing or default
     if (!GEMINI_API_KEY || GEMINI_API_KEY === "YAHAN_APNI_ASLI_API_KEY_DAALO") {
-      alert('⚠️ API Key missing! Running Smart Simulation Mode so the app does not crash.');
+      alert('⚠️ API Key missing! Running Smart Simulation Mode with LaTeX so the app does not crash.');
       setTimeout(() => {
         setIsProcessingPdf(false);
         const simQs = [
@@ -103,19 +148,19 @@ export default function JEEParivarUltimateApp() {
             id: 101,
             subject: 'Physics',
             type: 'MCQ',
-            text: `[Simulated from ${questionFile.name}] Electric field inside a conducting spherical shell is:`,
-            options: ['Zero', 'Constant', 'Depends on radius', 'Infinite'],
+            text: `[Simulated from ${questionFile.name}] The electric field $E$ inside a conducting spherical shell of radius $R$ with charge $Q$ is given by:`,
+            options: ['$0$', '$\\frac{kQ}{R^2}$', '$\\frac{kQ}{r^2}$', '$\\infty$'],
             correctAnswer: 0,
-            solution: 'Electric field inside a conductor is always zero.'
+            solution: 'By Gauss Law, the charge resides on the outer surface. Hence, the electric field inside a conductor is always $E = 0$.'
           },
           {
             id: 102,
             subject: 'Mathematics',
             type: 'INTEGER',
-            text: `[Simulated from ${questionFile.name}] Find derivative of x³ at x = 2.`,
+            text: `[Simulated from ${questionFile.name}] Evaluate the integral $\\int_0^2 3x^2 dx$.`,
             options: [],
-            correctAnswer: '12',
-            solution: 'Derivative is 3x². At x=2, it is 12.'
+            correctAnswer: '8',
+            solution: 'The integral evaluates to $\\left[ x^3 \\right]_0^2 = 2^3 - 0 = 8$.'
           }
         ];
         simQs.forEach(q => q.youtubeLink = getYouTubeSearchLink(q.text));
@@ -131,7 +176,7 @@ export default function JEEParivarUltimateApp() {
     }
 
     try {
-      // Helper function to convert PDF to Base64
+      // Convert PDF to Base64
       const getBase64 = (file) => new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
@@ -146,6 +191,7 @@ export default function JEEParivarUltimateApp() {
         { inlineData: { data: qBase64, mimeType: 'application/pdf' } }
       ];
 
+      // Attach Answer Key if provided
       if (answerKeyFile) {
         const akBase64 = await getBase64(answerKeyFile);
         parts.push({ inlineData: { data: akBase64, mimeType: 'application/pdf' } });
@@ -153,17 +199,18 @@ export default function JEEParivarUltimateApp() {
       }
 
       promptText += `
-      Extract all questions, options, and correct answers. Preserve equations in LaTeX format.
-      Return ONLY a raw valid JSON array format like this (NO markdown blocks, NO backticks):
+      Extract all questions, options, and correct answers. 
+      CRITICAL INSTRUCTION: Preserve all mathematical equations, formulas, and symbols in standard LaTeX format wrapped in single $ for inline or double $$ for block equations.
+      Return ONLY a raw valid JSON array format like this (NO markdown blocks, NO backticks, NO extra text):
       [
         {
           "id": 1,
           "subject": "Physics/Chemistry/Mathematics",
           "type": "MCQ" or "INTEGER",
-          "text": "Question text...",
+          "text": "Question text with $math$...",
           "options": ["A", "B", "C", "D"],
           "correctAnswer": 0,
-          "solution": "Step by step solution..."
+          "solution": "Step by step solution with $math$..."
         }
       ]`;
 
@@ -184,11 +231,13 @@ export default function JEEParivarUltimateApp() {
 
       const rawText = resultData.candidates[0].content.parts[0].text;
       
+      // Clean JSON extraction
       const jsonMatch = rawText.match(/\[[\s\S]*\]/);
       if (!jsonMatch) throw new Error('AI did not return a valid JSON format.');
 
       const parsedQuestions = JSON.parse(jsonMatch[0]);
 
+      // Map dynamic YouTube links
       parsedQuestions.forEach(q => {
         q.youtubeLink = getYouTubeSearchLink(q.text);
       });
@@ -209,7 +258,9 @@ export default function JEEParivarUltimateApp() {
     }
   };
 
-  // 11. Quick Demo Test Generator
+  // ============================================================================
+  // 7. DEMO TEST GENERATOR (WITH LATEX)
+  // ============================================================================
   const startDemoTest = () => {
     setExamType('DEMO');
     setTimer(300);
@@ -218,28 +269,28 @@ export default function JEEParivarUltimateApp() {
         id: 991,
         subject: 'Physics',
         type: 'MCQ',
-        text: 'A particle moves under potential V(x) = 1/2 kx². Find angular frequency omega.',
-        options: ['sqrt(k/m)', 'sqrt(m/k)', 'k/m', 'm/k'],
+        text: 'A particle of mass $m$ moves under a potential $V(x) = \\frac{1}{2} kx^2$. Find its angular frequency $\\omega$.',
+        options: ['$\\sqrt{\\frac{k}{m}}$', '$\\sqrt{\\frac{m}{k}}$', '$\\frac{k}{m}$', '$\\frac{m}{k}$'],
         correctAnswer: 0,
-        solution: 'For standard harmonic oscillator, omega = sqrt(k/m).'
+        solution: 'For a standard simple harmonic oscillator, the angular frequency is given by $\\omega = \\sqrt{\\frac{k}{m}}$.'
       },
       {
         id: 992,
         subject: 'Chemistry',
         type: 'MCQ',
-        text: 'What is the unit of first-order rate constant k?',
-        options: ['s⁻¹', 'mol L⁻¹ s⁻¹', 'L mol⁻¹ s⁻¹', 'None'],
+        text: 'For a first-order reaction $A \\rightarrow P$, the integrated rate law is given by $\\ln[A] = -kt + \\ln[A]_0$. What is the unit of $k$?',
+        options: ['$s^{-1}$', '$mol \\cdot L^{-1} \\cdot s^{-1}$', '$L \\cdot mol^{-1} \\cdot s^{-1}$', 'Dimensionless'],
         correctAnswer: 0,
-        solution: 'First-order rate constant unit is time inverse (s⁻¹).'
+        solution: 'For a first-order reaction, the rate depends linearly on concentration, so $k$ must have units of time inverse, i.e., $s^{-1}$.'
       },
       {
         id: 993,
         subject: 'Mathematics',
         type: 'INTEGER',
-        text: 'Find value of x if x + 5 = 9.',
+        text: 'Evaluate the definite integral: $\\int_0^1 (4x^3 + 3x^2) dx$.',
         options: [],
-        correctAnswer: '4',
-        solution: 'Simple linear equation: x = 9 - 5 = 4.'
+        correctAnswer: '2',
+        solution: '$\\int_0^1 (4x^3 + 3x^2) dx = \\left[ x^4 + x^3 \\right]_0^1 = (1 + 1) - (0 + 0) = 2$.'
       }
     ];
     demoQs.forEach(q => q.youtubeLink = getYouTubeSearchLink(q.text));
@@ -250,7 +301,9 @@ export default function JEEParivarUltimateApp() {
     setCurrentView('test');
   };
 
-  // 12. Full Paper Generator (Main/Advanced)
+  // ============================================================================
+  // 8. FULL NTA MOCK TEST GENERATOR
+  // ============================================================================
   const startMockTest = (type) => {
     setExamType(type);
     setTimer(customMinutes * 60);
@@ -262,28 +315,30 @@ export default function JEEParivarUltimateApp() {
     const countInt = type === 'MAIN' ? 5 : 7;
 
     subjects.forEach((subj) => {
+      // Generate MCQs
       for (let i = 1; i <= countMCQ; i++) {
         generated.push({
           id: idCounter++,
           subject: subj,
           type: 'MCQ',
-          text: `[JEE ${type}] Concept MCQ Question ${i} in ${subj}.`,
-          options: ['Option A', 'Option B', 'Option C', 'Option D'],
-          correctAnswer: 0,
-          solution: `Detailed solution for ${subj} Q${i}.`,
-          youtubeLink: getYouTubeSearchLink(`JEE ${subj} Concept MCQ`)
+          text: `[JEE ${type}] Concept MCQ Question ${i} in ${subj}. Evaluate the limit: $\\lim_{x \\to 0} \\frac{\\sin x}{x}$.`,
+          options: ['$0$', '$1$', '$\\infty$', 'Does not exist'],
+          correctAnswer: 1,
+          solution: `By L'Hopital's rule or standard limits, $\\lim_{x \\to 0} \\frac{\\sin x}{x} = 1$.`,
+          youtubeLink: getYouTubeSearchLink(`JEE ${subj} Concept limit sinx/x`)
         });
       }
+      // Generate Integers
       for (let i = 1; i <= countInt; i++) {
         generated.push({
           id: idCounter++,
           subject: subj,
           type: 'INTEGER',
-          text: `[JEE ${type}] Numerical Integer Question ${i} in ${subj}.`,
+          text: `[JEE ${type}] Numerical Integer Question ${i} in ${subj}. Find the root of the equation $3x - 12 = 0$.`,
           options: [],
           correctAnswer: '4',
-          solution: `Evaluated numerical result for ${subj} integer Q${i}.`,
-          youtubeLink: getYouTubeSearchLink(`JEE ${subj} Integer Type`)
+          solution: `Solving the linear equation: $3x = 12 \\implies x = 4$.`,
+          youtubeLink: getYouTubeSearchLink(`JEE ${subj} Integer equation root`)
         });
       }
     });
@@ -295,13 +350,15 @@ export default function JEEParivarUltimateApp() {
     setCurrentView('test');
   };
 
-  // 13. Deep Evaluation & Scorecard Generator
+  // ============================================================================
+  // 9. TEST SUBMISSION & SCORECARD GENERATION
+  // ============================================================================
   const handleSubmitTest = () => {
     let correct = 0;
     let incorrect = 0;
     let unattempted = 0;
     
-    // Detailed Subject Tracking
+    // Detailed Subject Tracking Structure
     let subjectStats = {
       Physics: { correct: 0, incorrect: 0, total: 0, score: 0 },
       Chemistry: { correct: 0, incorrect: 0, total: 0, score: 0 },
@@ -371,133 +428,191 @@ export default function JEEParivarUltimateApp() {
     setCurrentView('result');
   };
 
-  // ==========================================
+  // ============================================================================
   // RENDER SECTIONS
-  // ==========================================
+  // ============================================================================
 
-  // 1. LANDING PAGE
+  // ----------------------------------------------------------------------------
+  // VIEW 1: LANDING PAGE (FULL DETAILED VERSION RESTORED)
+  // ----------------------------------------------------------------------------
   if (currentView === 'landing') {
     return (
       <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-orange-500 selection:text-white">
+        {/* Navigation Bar */}
         <nav className="flex justify-between items-center px-8 py-5 border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50">
           <div className="flex items-center gap-3">
             <span className="text-2xl font-black bg-gradient-to-r from-orange-500 to-amber-400 bg-clip-text text-transparent">
               JEE PARIVAR 🏛️
             </span>
-            <span className="text-xs px-2.5 py-1 bg-orange-500/20 text-orange-400 rounded-full border border-orange-500/30 font-semibold">
+            <span className="text-xs px-2.5 py-1 bg-orange-500/20 text-orange-400 rounded-full border border-orange-500/30 font-semibold hidden md:inline-block">
               IIT Bombay & Kharagpur Mission
             </span>
           </div>
           <button
             onClick={() => setCurrentView('login')}
-            className="px-6 py-2.5 bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 font-bold rounded-xl shadow-lg transition-all transform hover:scale-105"
+            className="px-6 py-2.5 bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 font-bold rounded-xl shadow-lg shadow-orange-500/20 transition-all transform hover:scale-105"
           >
             Student Login 🚀
           </button>
         </nav>
 
-        <header className="relative overflow-hidden py-20 px-6 text-center bg-gradient-to-b from-slate-900 to-slate-950 border-b border-slate-900">
+        {/* Hero Header Section */}
+        <header className="relative overflow-hidden py-24 px-6 text-center bg-gradient-to-b from-slate-900 to-slate-950 border-b border-slate-900">
           <div className="max-w-4xl mx-auto relative z-10">
-            <div className="inline-block mb-4 px-4 py-1.5 rounded-full bg-slate-800 text-amber-400 text-sm font-semibold border border-slate-700">
+            <div className="inline-block mb-6 px-4 py-1.5 rounded-full bg-slate-800 text-amber-400 text-sm font-semibold border border-slate-700 shadow-md">
               🔥 Target: AIR Under 1000 • Developed by Amit
             </div>
             <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-6 leading-tight">
               Master JEE with <br />
               <span className="bg-gradient-to-r from-orange-400 via-amber-300 to-yellow-500 bg-clip-text text-transparent">
-                Direct AI PDF Parser (No API Error)
+                Direct AI PDF Parsing & Real Math Equations
               </span>
             </h1>
-            <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto">
-              Completely bypass anti-cheat restrictions. Upload PDFs directly from browser to AI for exact extraction. Deep subject-wise analysis included.
+            <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
+              Completely bypass anti-cheat restrictions. Upload PDFs directly from your browser to AI for exact extraction. Deep subject-wise analysis and LaTeX equation rendering included.
             </p>
             <button
               onClick={() => setCurrentView('login')}
-              className="px-8 py-4 bg-orange-500 hover:bg-orange-600 font-bold text-lg rounded-xl shadow-xl transition-all transform hover:-translate-y-1"
+              className="px-10 py-4 bg-orange-500 hover:bg-orange-600 font-black text-lg rounded-xl shadow-xl shadow-orange-500/30 transition-all transform hover:-translate-y-1"
             >
               Enter Portal & Login 🎯
             </button>
           </div>
         </header>
 
-        {/* IIT Campus Showcase */}
-        <section className="py-16 px-6 max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-10 text-orange-400">Your Destination: Elite IIT Campuses 🏛️✨</h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="rounded-2xl overflow-hidden border border-slate-800 bg-slate-900 shadow-xl group">
-              <img src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=800&q=80" alt="IIT Bombay" className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500"/>
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-amber-400 mb-2">IIT Bombay 🌅</h3>
-                <p className="text-slate-400 text-sm">"The struggle you're in today is developing the strength you need for tomorrow."</p>
+        {/* FULL IIT Campus Showcase Section (Restored) */}
+        <section className="py-20 px-6 max-w-6xl mx-auto">
+          <div className="text-center mb-14">
+            <h2 className="text-3xl md:text-4xl font-black text-orange-400 mb-4">Your Destination: Elite IIT Campuses 🏛️✨</h2>
+            <p className="text-slate-400 max-w-2xl mx-auto">Visualize your dream. The rigorous preparation you do today on JEE Parivar will open the gates to these historic institutions tomorrow.</p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-10">
+            {/* IIT Bombay Card */}
+            <div className="rounded-2xl overflow-hidden border border-slate-800 bg-slate-900 shadow-2xl group flex flex-col">
+              <div className="relative overflow-hidden h-72">
+                <img 
+                  src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=800&q=80" 
+                  alt="IIT Bombay Campus" 
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent"></div>
+              </div>
+              <div className="p-8 flex-1 flex flex-col justify-between">
+                <div>
+                  <h3 className="text-2xl font-black text-amber-400 mb-3">IIT Bombay 🌅</h3>
+                  <p className="text-slate-400 text-sm leading-relaxed mb-4">
+                    "The struggle you're in today is developing the strength you need for tomorrow. Located in Powai, IITB represents the absolute pinnacle of engineering excellence in India."
+                  </p>
+                </div>
+                <div className="pt-4 border-t border-slate-800 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  Est. 1958 • Powai, Mumbai
+                </div>
               </div>
             </div>
-            <div className="rounded-2xl overflow-hidden border border-slate-800 bg-slate-900 shadow-xl group">
-              <img src="https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=800&q=80" alt="IIT Kharagpur" className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500"/>
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-amber-400 mb-2">IIT Kharagpur 🌳</h3>
-                <p className="text-slate-400 text-sm">"Legacy, heritage, and the historic 2,100 acres of academic excellence."</p>
+            
+            {/* IIT Kharagpur Card */}
+            <div className="rounded-2xl overflow-hidden border border-slate-800 bg-slate-900 shadow-2xl group flex flex-col">
+              <div className="relative overflow-hidden h-72">
+                <img 
+                  src="https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=800&q=80" 
+                  alt="IIT Kharagpur Campus" 
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent"></div>
+              </div>
+              <div className="p-8 flex-1 flex flex-col justify-between">
+                <div>
+                  <h3 className="text-2xl font-black text-amber-400 mb-3">IIT Kharagpur 🌳</h3>
+                  <p className="text-slate-400 text-sm leading-relaxed mb-4">
+                    "Legacy, heritage, and the historic 2,100 acres of academic excellence. The oldest and largest IIT, cultivating the sharpest minds since independence."
+                  </p>
+                </div>
+                <div className="pt-4 border-t border-slate-800 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  Est. 1951 • Kharagpur, WB
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        <footer className="py-10 text-center border-t border-slate-900 text-slate-500 text-sm bg-slate-900/40">
-          <p className="mb-2 font-semibold text-slate-300">🇮🇳 Made with pride in India</p>
-          <p className="text-orange-400 font-bold mb-1">Developed by Amit</p>
-          <p>© 2026 JEE Parivar • Dedicated to future IITians 🚀</p>
+        <footer className="py-12 text-center border-t border-slate-900 text-slate-500 text-sm bg-slate-900/40">
+          <p className="mb-3 font-semibold text-slate-300">🇮🇳 Made with pride in India for JEE Aspirants</p>
+          <p className="text-orange-400 font-bold text-base mb-2">Developed by Amit</p>
+          <p>© 2026 JEE Parivar • Unlocking potential through AI 🚀</p>
         </footer>
       </div>
     );
   }
 
-  // 2. LOGIN PAGE
+  // ----------------------------------------------------------------------------
+  // VIEW 2: LOGIN PAGE (FULL 3-METHOD AUTH)
+  // ----------------------------------------------------------------------------
   if (currentView === 'login') {
     return (
       <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-6">
-        <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl max-w-md w-full shadow-2xl">
-          <h2 className="text-2xl font-black text-orange-400 mb-2 text-center">Student Portal Login</h2>
-          <p className="text-slate-400 text-sm mb-6 text-center">Secure authentication for future IITians.</p>
+        <div className="bg-slate-900 border border-slate-800 p-8 md:p-10 rounded-3xl max-w-md w-full shadow-2xl">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-black text-orange-400 mb-2">Student Portal</h2>
+            <p className="text-slate-400 text-sm">Secure authentication for future IITians.</p>
+          </div>
 
           {authMethod === 'choice' && (
             <div className="space-y-4">
-              <button onClick={() => { setStudentName('Google Student (Amit)'); setCurrentView('dashboard'); }} className="w-full py-3.5 px-4 bg-slate-950 hover:bg-slate-800 border border-slate-700 rounded-xl font-bold flex items-center justify-center gap-3 transition-all">
-                <span>🌐</span> Continue with Google
+              <button onClick={() => { setStudentName('Google Student (Amit)'); setCurrentView('dashboard'); }} className="w-full py-4 px-4 bg-slate-950 hover:bg-slate-800 border border-slate-700 rounded-xl font-bold flex items-center justify-center gap-3 transition-all">
+                <span className="text-xl">🌐</span> Continue with Google
               </button>
-              <button onClick={() => setAuthMethod('phone')} className="w-full py-3.5 px-4 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 border border-orange-500/30 rounded-xl font-bold flex items-center justify-center gap-3 transition-all">
-                <span>📱</span> Login with Phone Number
+              <button onClick={() => setAuthMethod('phone')} className="w-full py-4 px-4 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded-xl font-bold flex items-center justify-center gap-3 transition-all">
+                <span className="text-xl">📱</span> Login with Phone Number
               </button>
-              <button onClick={() => setAuthMethod('name')} className="w-full py-3.5 px-4 bg-slate-800 hover:bg-slate-700 rounded-xl font-bold flex items-center justify-center gap-3 transition-all text-sm text-slate-300">
-                <span>👤</span> Quick Login with Name
+              <button onClick={() => setAuthMethod('name')} className="w-full py-4 px-4 bg-slate-800 hover:bg-slate-700 rounded-xl font-bold flex items-center justify-center gap-3 transition-all text-sm text-slate-300">
+                <span className="text-xl">👤</span> Quick Login with Name
               </button>
-              <button onClick={() => setCurrentView('landing')} className="w-full mt-4 py-2 text-slate-400 hover:text-white text-sm text-center block">← Back to Home</button>
+              <button onClick={() => setCurrentView('landing')} className="w-full mt-6 py-2 text-slate-500 hover:text-white text-sm text-center block transition-colors">
+                ← Back to Home
+              </button>
             </div>
           )}
 
           {authMethod === 'phone' && (
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Mobile Number:</label>
-                <input type="tel" placeholder="+91 98765 43210" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-orange-500" />
+                <label className="text-xs font-bold text-slate-400 block mb-2 uppercase tracking-wide">Mobile Number:</label>
+                <input type="tel" placeholder="+91 98765 43210" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-orange-500 transition-colors" />
               </div>
               {isOtpSent && (
-                <div>
-                  <label className="text-xs text-slate-400 block mb-1">Enter 6-Digit OTP:</label>
-                  <input type="text" placeholder="123456" value={otp} onChange={(e) => setOtp(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-orange-500 font-mono text-center text-lg" />
+                <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                  <label className="text-xs font-bold text-slate-400 block mb-2 uppercase tracking-wide">Enter 6-Digit OTP:</label>
+                  <input type="text" placeholder="123456" value={otp} onChange={(e) => setOtp(e.target.value)} className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-orange-500 font-mono text-center text-xl tracking-[0.5em]" />
                 </div>
               )}
               {!isOtpSent ? (
-                <button onClick={() => { if (phoneNumber.length < 10) return; setIsOtpSent(true); }} className="w-full py-3 bg-orange-500 font-bold rounded-xl">Send OTP 📩</button>
+                <button onClick={() => { if (phoneNumber.length < 10) return; setIsOtpSent(true); }} className="w-full py-4 bg-orange-500 hover:bg-orange-600 font-black rounded-xl transition-all shadow-lg shadow-orange-500/20">
+                  Send OTP 📩
+                </button>
               ) : (
-                <button onClick={() => { if (otp.length < 4) return; setStudentName('User (' + phoneNumber.slice(-4) + ')'); setCurrentView('dashboard'); }} className="w-full py-3 bg-green-600 font-bold rounded-xl">Verify & Login 🚀</button>
+                <button onClick={() => { if (otp.length < 4) return; setStudentName('User (' + phoneNumber.slice(-4) + ')'); setCurrentView('dashboard'); }} className="w-full py-4 bg-green-600 hover:bg-green-700 font-black rounded-xl transition-all shadow-lg shadow-green-600/20">
+                  Verify & Login 🚀
+                </button>
               )}
-              <button onClick={() => setAuthMethod('choice')} className="w-full py-2 text-slate-400 text-sm">← Back</button>
+              <button onClick={() => setAuthMethod('choice')} className="w-full py-2 text-slate-500 hover:text-white text-sm transition-colors">
+                ← Back to Options
+              </button>
             </div>
           )}
 
           {authMethod === 'name' && (
-            <div className="space-y-4">
-              <input type="text" placeholder="Enter your name (e.g., Amit Kumar)" value={studentName} onChange={(e) => setStudentName(e.target.value)} className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-orange-500" />
-              <button onClick={() => { if (!studentName) return; setCurrentView('dashboard'); }} className="w-full py-3.5 bg-orange-500 font-bold rounded-xl">Continue to Dashboard 🚀</button>
-              <button onClick={() => setAuthMethod('choice')} className="w-full py-2 text-slate-400 text-sm">← Back</button>
+            <div className="space-y-5">
+              <div>
+                <label className="text-xs font-bold text-slate-400 block mb-2 uppercase tracking-wide">Full Name:</label>
+                <input type="text" placeholder="e.g., Amit Kumar" value={studentName} onChange={(e) => setStudentName(e.target.value)} className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-orange-500 transition-colors" />
+              </div>
+              <button onClick={() => { if (!studentName) return; setCurrentView('dashboard'); }} className="w-full py-4 bg-orange-500 hover:bg-orange-600 font-black rounded-xl transition-all shadow-lg shadow-orange-500/20">
+                Continue to Dashboard 🚀
+              </button>
+              <button onClick={() => setAuthMethod('choice')} className="w-full py-2 text-slate-500 hover:text-white text-sm transition-colors">
+                ← Back to Options
+              </button>
             </div>
           )}
         </div>
@@ -505,59 +620,77 @@ export default function JEEParivarUltimateApp() {
     );
   }
 
-  // 3. DASHBOARD PAGE
+  // ----------------------------------------------------------------------------
+  // VIEW 3: DASHBOARD (FULL UI RESTORED)
+  // ----------------------------------------------------------------------------
   if (currentView === 'dashboard') {
     return (
       <div className="min-h-screen bg-slate-950 text-white flex flex-col">
-        <header className="bg-slate-900 border-b border-slate-800 px-8 py-5 flex justify-between items-center">
+        {/* Dashboard Header */}
+        <header className="bg-slate-900 border-b border-slate-800 px-6 md:px-10 py-5 flex justify-between items-center sticky top-0 z-40 shadow-sm">
           <div>
-            <h1 className="text-xl font-black text-orange-400">Welcome, {studentName} 🎯</h1>
-            <p className="text-xs text-slate-400">Target: IIT Bombay / Delhi • Testing Dashboard</p>
+            <h1 className="text-xl md:text-2xl font-black text-orange-400">Welcome, {studentName} 🎯</h1>
+            <p className="text-xs md:text-sm text-slate-400 mt-1">Target: IIT Bombay / Delhi • Testing Dashboard</p>
           </div>
-          <button onClick={() => setCurrentView('landing')} className="text-xs px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300">Logout</button>
+          <button onClick={() => setCurrentView('landing')} className="text-xs md:text-sm px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 font-bold transition-colors">
+            Logout
+          </button>
         </header>
 
-        <main className="flex-1 p-8 max-w-4xl mx-auto w-full space-y-8">
+        <main className="flex-1 p-6 md:p-10 max-w-5xl mx-auto w-full space-y-8">
           
-          <div className="bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-slate-900 border border-amber-500/40 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-4">
+          {/* Quick Demo Section */}
+          <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-slate-900 border border-amber-500/30 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row justify-between items-center gap-6 shadow-xl">
             <div>
-              <span className="text-xs px-2.5 py-1 bg-amber-500/20 text-amber-400 rounded-full font-bold">⚡ Quick Check</span>
-              <h2 className="text-xl font-bold mt-2 text-white">Want to try a Quick Demo Test?</h2>
-              <p className="text-slate-400 text-sm">Test NTA interface with per-question timers.</p>
+              <span className="text-xs px-3 py-1 bg-amber-500/20 text-amber-400 rounded-full font-bold uppercase tracking-wider">⚡ LaTeX Check</span>
+              <h2 className="text-2xl font-black mt-3 text-white">Quick Demo Test</h2>
+              <p className="text-slate-400 text-sm mt-1">Test NTA interface with Real Math Equations (LaTeX) rendered flawlessly.</p>
             </div>
-            <button onClick={startDemoTest} className="px-6 py-3.5 bg-amber-500 hover:bg-amber-600 font-black text-slate-950 rounded-xl shadow-lg whitespace-nowrap">Start Demo Test 🚀</button>
-          </div>
-
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 space-y-6">
-            <h2 className="text-2xl font-bold text-orange-400">🧠 Direct API PDF Extraction</h2>
-            <p className="text-slate-400 text-sm">Upload Question Paper PDF. Ensure API key is set in code to extract real equations.</p>
-            
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="p-5 bg-slate-950 border border-slate-800 rounded-xl">
-                <label className="block text-sm font-bold text-amber-400 mb-2">1️⃣ Question Paper PDF</label>
-                <input type="file" accept=".pdf" onChange={(e) => setQuestionFile(e.target.files[0])} className="w-full text-xs text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-orange-500 file:text-white" />
-              </div>
-              <div className="p-5 bg-slate-950 border border-slate-800 rounded-xl">
-                <label className="block text-sm font-bold text-amber-400 mb-2">2️⃣ Answer Key PDF (Optional)</label>
-                <input type="file" accept=".pdf" onChange={(e) => setAnswerKeyFile(e.target.files[0])} className="w-full text-xs text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-purple-600 file:text-white" />
-              </div>
-            </div>
-
-            <button onClick={handleRealPdfUploadAndParse} disabled={isProcessingPdf} className="w-full py-3.5 bg-green-600 hover:bg-green-500 font-bold rounded-xl shadow-lg">
-              {isProcessingPdf ? '⏳ Connecting to AI directly... (Please wait)' : 'Extract Data & Start Test 🤖'}
+            <button onClick={startDemoTest} className="w-full md:w-auto px-8 py-4 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl shadow-lg transition-transform transform hover:scale-105 whitespace-nowrap">
+              Start Demo Test 🚀
             </button>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8">
-            <h2 className="text-2xl font-bold mb-4 text-orange-400">⚙️ Full NTA Mock Tests</h2>
-            <div className="grid md:grid-cols-2 gap-6 mb-6">
-              <div>
-                <label className="text-xs text-slate-400 block mb-2">Customize Test Duration (Minutes):</label>
-                <input type="number" value={customMinutes} onChange={(e) => setCustomMinutes(Number(e.target.value))} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-white font-bold text-lg" />
+          {/* Real Backend PDF Extraction Section */}
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-10 space-y-8 shadow-xl">
+            <div>
+              <h2 className="text-2xl font-black text-orange-400 flex items-center gap-2">🧠 Direct API PDF Extraction (Math Mode)</h2>
+              <p className="text-slate-400 text-sm mt-2">Upload real Question Papers. Ensure Gemini API key is set in code to extract actual mathematical equations into LaTeX.</p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6 md:gap-8">
+              <div className="p-6 bg-slate-950 border border-slate-800 rounded-2xl transition-colors hover:border-orange-500/50">
+                <label className="block text-sm font-black text-amber-400 mb-4 uppercase tracking-wider">1️⃣ Question Paper PDF</label>
+                <input type="file" accept=".pdf" onChange={(e) => setQuestionFile(e.target.files[0])} className="w-full text-sm text-slate-300 file:mr-4 file:py-2.5 file:px-5 file:rounded-xl file:border-0 file:font-bold file:bg-orange-500/20 file:text-orange-400 hover:file:bg-orange-500/30 cursor-pointer" />
+                {questionFile && <p className="text-xs text-green-400 mt-3 font-medium">Selected: {questionFile.name}</p>}
               </div>
-              <div className="flex items-end gap-3">
-                <button onClick={() => startMockTest('MAIN')} className="flex-1 py-3.5 bg-orange-500 font-bold rounded-xl shadow-lg">JEE Main (75 Qs) 🚀</button>
-                <button onClick={() => startMockTest('ADVANCED')} className="flex-1 py-3.5 bg-purple-600 font-bold rounded-xl shadow-lg">JEE Adv (51 Qs) ⚡</button>
+              <div className="p-6 bg-slate-950 border border-slate-800 rounded-2xl transition-colors hover:border-purple-500/50">
+                <label className="block text-sm font-black text-amber-400 mb-4 uppercase tracking-wider">2️⃣ Answer Key PDF (Optional)</label>
+                <input type="file" accept=".pdf" onChange={(e) => setAnswerKeyFile(e.target.files[0])} className="w-full text-sm text-slate-300 file:mr-4 file:py-2.5 file:px-5 file:rounded-xl file:border-0 file:font-bold file:bg-purple-600/20 file:text-purple-400 hover:file:bg-purple-600/30 cursor-pointer" />
+                {answerKeyFile && <p className="text-xs text-green-400 mt-3 font-medium">Selected: {answerKeyFile.name}</p>}
+              </div>
+            </div>
+
+            <button onClick={handleRealPdfUploadAndParse} disabled={isProcessingPdf} className="w-full py-4 bg-green-600 hover:bg-green-500 font-black text-lg rounded-xl shadow-lg shadow-green-600/20 transition-all">
+              {isProcessingPdf ? '⏳ AI is Processing Equations... (Please wait)' : 'Extract Math Data & Start Test 🤖'}
+            </button>
+          </div>
+          
+          {/* Full Mock Test Configurations */}
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-10 shadow-xl">
+            <h2 className="text-2xl font-black mb-6 text-orange-400">⚙️ Full NTA Mock Tests Configuration</h2>
+            <div className="grid md:grid-cols-2 gap-8 mb-4">
+              <div>
+                <label className="text-xs font-bold text-slate-400 block mb-3 uppercase tracking-wider">Customize Test Duration (Minutes):</label>
+                <input type="number" value={customMinutes} onChange={(e) => setCustomMinutes(Number(e.target.value))} className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl text-white font-black text-xl outline-none focus:border-orange-500" />
+              </div>
+              <div className="flex flex-col sm:flex-row items-end gap-4">
+                <button onClick={() => startMockTest('MAIN')} className="w-full sm:flex-1 py-4 bg-orange-500 hover:bg-orange-600 font-black rounded-xl shadow-lg transition-transform transform hover:-translate-y-1">
+                  JEE Main 🚀
+                </button>
+                <button onClick={() => startMockTest('ADVANCED')} className="w-full sm:flex-1 py-4 bg-purple-600 hover:bg-purple-700 font-black rounded-xl shadow-lg transition-transform transform hover:-translate-y-1">
+                  JEE Adv ⚡
+                </button>
               </div>
             </div>
           </div>
@@ -566,82 +699,164 @@ export default function JEEParivarUltimateApp() {
     );
   }
 
-  // 4. TEST INTERFACE
+  // ----------------------------------------------------------------------------
+  // VIEW 4: TEST INTERFACE (WITH LATEX)
+  // ----------------------------------------------------------------------------
   if (currentView === 'test' && testQuestions.length > 0) {
     const q = testQuestions[currentQuestionIndex];
     const currentQuestionTime = questionTimers[currentQuestionIndex] || 0;
     
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex flex-col">
-        <header className="bg-slate-900 border-b border-slate-800 px-6 py-4 flex justify-between items-center">
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col font-sans selection:bg-orange-500/30">
+        <header className="bg-slate-900 border-b border-slate-800 px-6 py-4 flex justify-between items-center sticky top-0 z-50">
           <div className="flex items-center gap-4">
-            <span className="font-bold text-orange-400">JEE Engine ({examType})</span>
-            {/* Anti-Cheat Badge Removed for Bypass */}
+            <span className="font-black text-xl text-orange-400 tracking-tight">JEE Engine ({examType})</span>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 text-xs">
-              <span className="text-slate-400">This Q Time: </span>
-              <span className="font-mono font-bold text-orange-400">{currentQuestionTime}s</span>
+          <div className="flex items-center gap-3 md:gap-5">
+            <div className="bg-slate-950 px-4 py-2 rounded-xl border border-slate-800 text-xs shadow-inner hidden sm:block">
+              <span className="text-slate-500 font-bold uppercase tracking-wider mr-2">This Q Time:</span>
+              <span className="font-mono font-black text-orange-400 text-sm">{currentQuestionTime}s</span>
             </div>
-            <div className="bg-slate-950 px-4 py-2 rounded-xl border border-slate-800">
-              <span className="text-xs text-slate-400">Total Time: </span>
-              <span className="font-mono text-lg font-bold text-amber-400">{formatTime(timer)}</span>
+            <div className="bg-slate-950 px-5 py-2 rounded-xl border border-slate-800 shadow-inner">
+              <span className="text-xs text-slate-500 font-bold uppercase tracking-wider mr-2 hidden sm:inline">Total Time:</span>
+              <span className="font-mono text-xl font-black text-amber-400">{formatTime(timer)}</span>
             </div>
           </div>
         </header>
         
-        <main className="flex-1 p-6 max-w-7xl mx-auto w-full grid md:grid-cols-3 gap-8">
-          <div className="md:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
+        <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full grid lg:grid-cols-3 gap-8">
+          {/* Main Question Area */}
+          <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 flex flex-col justify-between shadow-2xl">
             <div>
-              <div className="flex justify-between items-center mb-4">
-                <span className="text-xs px-3 py-1 bg-orange-500/20 text-orange-400 rounded-full font-bold">{q.subject} • {q.type}</span>
-                <span className="text-sm text-slate-400">Question {currentQuestionIndex + 1} of {testQuestions.length}</span>
+              {/* Question Meta Header */}
+              <div className="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
+                <span className="text-xs px-3 py-1.5 bg-orange-500/10 text-orange-400 rounded-lg font-black uppercase tracking-wider border border-orange-500/20">
+                  {q.subject} • {q.type}
+                </span>
+                <span className="text-sm font-bold text-slate-400">
+                  Question {currentQuestionIndex + 1} of {testQuestions.length}
+                </span>
               </div>
-              <p className="text-lg font-medium mb-6 leading-relaxed bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-amber-200">
-                {q.text}
-              </p>
+              
+              {/* Question Text (LaTeX Rendered) */}
+              <div className="text-lg md:text-xl font-medium mb-8 leading-relaxed bg-slate-950 p-6 rounded-2xl border border-slate-800 text-white overflow-x-auto shadow-inner">
+                {/* 👇 LATEX COMPONENT HERE 👇 */}
+                <Latex>{q.text}</Latex>
+              </div>
 
+              {/* Options or Virtual Keypad */}
               {q.type === 'MCQ' && q.options && q.options.length > 0 ? (
-                <div className="space-y-3 mb-8">
+                <div className="space-y-4 mb-8">
                   {q.options.map((opt, idx) => (
-                    <button key={idx} onClick={() => setAnswers({ ...answers, [q.id]: idx })} className={`w-full text-left p-4 rounded-xl border font-mono ${answers[q.id] === idx ? 'bg-orange-500/20 border-orange-500 text-orange-300' : 'bg-slate-950 border-slate-800 hover:border-slate-700'}`}>
-                      <span className="font-bold mr-3">{String.fromCharCode(65 + idx)}.</span> {opt}
+                    <button 
+                      key={idx} 
+                      onClick={() => setAnswers({ ...answers, [q.id]: idx })} 
+                      className={`w-full text-left p-5 rounded-2xl border-2 transition-all font-medium text-base md:text-lg flex items-center ${
+                        answers[q.id] === idx 
+                          ? 'bg-orange-500/10 border-orange-500 text-orange-300 shadow-[0_0_15px_rgba(249,115,22,0.1)]' 
+                          : 'bg-slate-950 border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white'
+                      }`}
+                    >
+                      <span className={`font-black mr-4 flex items-center justify-center w-8 h-8 rounded-full ${answers[q.id] === idx ? 'bg-orange-500 text-slate-900' : 'bg-slate-800 text-slate-400'}`}>
+                        {String.fromCharCode(65 + idx)}
+                      </span> 
+                      {/* 👇 LATEX IN OPTIONS 👇 */}
+                      <span className="overflow-x-auto flex-1 py-1">
+                        <Latex>{opt}</Latex>
+                      </span>
                     </button>
                   ))}
                 </div>
               ) : (
-                <div className="mb-8 p-4 bg-slate-950 rounded-xl border border-slate-800">
-                  <label className="text-xs text-slate-400 block mb-2">Integer / Numerical Response Box (Virtual Keypad):</label>
-                  <input type="text" readOnly placeholder="Input value..." value={answers[q.id] || ''} className="w-full p-3 bg-slate-900 border border-slate-700 rounded-xl text-white font-mono text-lg mb-4 text-center" />
-                  <div className="grid grid-cols-3 gap-2 max-w-xs mx-auto">
+                <div className="mb-8 p-6 bg-slate-950 rounded-2xl border border-slate-800 shadow-inner">
+                  <label className="text-xs font-black text-slate-500 block mb-4 uppercase tracking-wider text-center">Numerical Response Keypad</label>
+                  <input 
+                    type="text" 
+                    readOnly 
+                    placeholder="Input value..." 
+                    value={answers[q.id] || ''} 
+                    className="w-full p-4 bg-slate-900 border border-slate-700 rounded-xl text-white font-mono text-2xl mb-6 text-center shadow-inner tracking-widest" 
+                  />
+                  <div className="grid grid-cols-3 gap-3 max-w-xs mx-auto">
                     {['1','2','3','4','5','6','7','8','9','-','0','.'].map((char) => (
-                      <button key={char} onClick={() => handleVirtualKeypad(char)} className="p-3 bg-slate-800 hover:bg-slate-700 rounded-lg font-bold">{char}</button>
+                      <button 
+                        key={char} 
+                        onClick={() => handleVirtualKeypad(char)} 
+                        className="p-4 bg-slate-800 hover:bg-slate-700 rounded-xl font-black text-xl transition-colors active:scale-95"
+                      >
+                        {char}
+                      </button>
                     ))}
-                    <button onClick={() => handleVirtualKeypad('CLEAR')} className="p-3 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-lg font-bold text-xs">CLEAR</button>
-                    <button onClick={() => handleVirtualKeypad('BACK')} className="p-3 bg-amber-600/20 hover:bg-amber-600/30 text-amber-400 rounded-lg font-bold text-xs col-span-2">⌫ BACKSPACE</button>
+                    <button onClick={() => handleVirtualKeypad('CLEAR')} className="p-4 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl font-black text-sm uppercase transition-colors active:scale-95 border border-red-500/20">CLEAR</button>
+                    <button onClick={() => handleVirtualKeypad('BACK')} className="p-4 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 rounded-xl font-black text-sm uppercase transition-colors active:scale-95 col-span-2 border border-amber-500/20">⌫ BACKSPACE</button>
                   </div>
                 </div>
               )}
             </div>
 
-            <div className="flex justify-between pt-4 border-t border-slate-800">
-              <button disabled={currentQuestionIndex === 0} onClick={() => setCurrentQuestionIndex(prev => prev - 1)} className="px-5 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 rounded-xl font-bold">Previous</button>
+            {/* Test Navigation Footer */}
+            <div className="flex justify-between pt-6 border-t border-slate-800 items-center">
+              <button 
+                disabled={currentQuestionIndex === 0} 
+                onClick={() => setCurrentQuestionIndex(prev => prev - 1)} 
+                className="px-6 py-3 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl font-bold text-sm transition-colors"
+              >
+                ← Previous
+              </button>
               {currentQuestionIndex < testQuestions.length - 1 ? (
-                <button onClick={() => setCurrentQuestionIndex(prev => prev + 1)} className="px-6 py-2 bg-orange-500 hover:bg-orange-600 font-bold rounded-xl">Save & Next</button>
+                <button 
+                  onClick={() => setCurrentQuestionIndex(prev => prev + 1)} 
+                  className="px-8 py-3 bg-orange-500 hover:bg-orange-600 font-black text-slate-900 rounded-xl shadow-lg transition-transform transform hover:scale-105"
+                >
+                  Save & Next →
+                </button>
               ) : (
-                <button onClick={handleSubmitTest} className="px-6 py-2 bg-green-600 hover:bg-green-700 font-bold rounded-xl shadow-lg">Submit Test 🏁</button>
+                <button 
+                  onClick={handleSubmitTest} 
+                  className="px-8 py-3 bg-green-500 hover:bg-green-600 font-black text-slate-900 rounded-xl shadow-lg shadow-green-500/20 transition-transform transform hover:scale-105"
+                >
+                  Submit Test 🏁
+                </button>
               )}
             </div>
           </div>
           
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 overflow-y-auto max-h-[600px]">
-            <h3 className="font-bold mb-4 text-sm text-slate-300">Question Palette</h3>
-            <div className="grid grid-cols-5 gap-2">
-              {testQuestions.map((item, idx) => (
-                <button key={item.id} onClick={() => setCurrentQuestionIndex(idx)} className={`h-10 rounded-lg font-bold border text-xs transition-all ${currentQuestionIndex === idx ? 'border-white' : 'border-slate-800'} ${answers[item.id] !== undefined && answers[item.id] !== '' ? 'bg-green-600/20 text-green-400 border-green-500/50' : 'bg-slate-950 text-slate-400'}`}>
-                  {idx + 1}
-                </button>
-              ))}
+          {/* Question Palette Sidebar */}
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 overflow-y-auto max-h-[600px] shadow-xl">
+            <h3 className="font-black mb-6 text-sm text-slate-400 uppercase tracking-wider border-b border-slate-800 pb-3">Question Palette</h3>
+            <div className="grid grid-cols-5 gap-3">
+              {testQuestions.map((item, idx) => {
+                const isAttempted = answers[item.id] !== undefined && answers[item.id] !== '';
+                const isCurrent = currentQuestionIndex === idx;
+                
+                return (
+                  <button 
+                    key={item.id} 
+                    onClick={() => setCurrentQuestionIndex(idx)} 
+                    className={`h-12 rounded-xl font-black text-sm transition-all border-2 ${
+                      isCurrent ? 'border-white shadow-[0_0_10px_rgba(255,255,255,0.2)]' : 'border-slate-800/50'
+                    } ${
+                      isAttempted 
+                        ? 'bg-green-500/20 text-green-400 border-green-500/30' 
+                        : 'bg-slate-950 text-slate-500 hover:bg-slate-800'
+                    }`}
+                  >
+                    {idx + 1}
+                  </button>
+                );
+              })}
+            </div>
+            
+            <div className="mt-8 pt-6 border-t border-slate-800 space-y-3">
+              <div className="flex items-center gap-3 text-xs font-bold text-slate-400">
+                <div className="w-4 h-4 rounded bg-green-500/20 border border-green-500/30"></div> Answered
+              </div>
+              <div className="flex items-center gap-3 text-xs font-bold text-slate-400">
+                <div className="w-4 h-4 rounded bg-slate-950 border border-slate-800/50"></div> Not Answered
+              </div>
+              <div className="flex items-center gap-3 text-xs font-bold text-slate-400">
+                <div className="w-4 h-4 rounded border-2 border-white bg-slate-950"></div> Current
+              </div>
             </div>
           </div>
         </main>
@@ -649,55 +864,78 @@ export default function JEEParivarUltimateApp() {
     );
   }
 
-  // 5. SCORECARD (Deep Subject-Wise UI Restored)
+  // ----------------------------------------------------------------------------
+  // VIEW 5: SCORECARD (DEEP SUBJECT-WISE UI FULLY RESTORED)
+  // ----------------------------------------------------------------------------
   if (currentView === 'result' && scoreCard) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white p-8 flex flex-col items-center justify-center">
-        <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl max-w-4xl w-full shadow-2xl space-y-6">
+      <div className="min-h-screen bg-slate-950 text-white p-6 md:p-10 flex flex-col items-center justify-center font-sans">
+        <div className="bg-slate-900 border border-slate-800 p-8 md:p-12 rounded-3xl max-w-5xl w-full shadow-2xl space-y-10">
           
-          <h2 className="text-3xl font-black text-orange-400 text-center">🎉 Test Evaluated Successfully!</h2>
-          <p className="text-slate-400 text-sm text-center">Detailed Subject-Wise Performance for {studentName}</p>
+          <div className="text-center">
+            <h2 className="text-4xl md:text-5xl font-black text-orange-400 mb-3">🎉 Test Evaluated!</h2>
+            <p className="text-slate-400 text-base">Detailed Subject-Wise Performance & Rank Prediction for <span className="text-white font-bold">{studentName}</span></p>
+          </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-            <div className="p-4 bg-slate-950 rounded-xl border border-slate-800">
-              <p className="text-xs text-slate-400">Total Score</p>
-              <p className="text-2xl font-bold text-amber-400">{scoreCard.score} / {scoreCard.maxScore}</p>
+          {/* Top 4 Key Metrics */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 text-center">
+            <div className="p-6 bg-slate-950 rounded-2xl border border-slate-800 shadow-inner">
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Total Score</p>
+              <p className="text-3xl font-black text-amber-400">{scoreCard.score} <span className="text-lg text-slate-600">/ {scoreCard.maxScore}</span></p>
             </div>
-            <div className="p-4 bg-slate-950 rounded-xl border border-slate-800">
-              <p className="text-xs text-slate-400">Correct / Incorrect</p>
-              <p className="text-2xl font-bold text-green-400">{scoreCard.correct} / <span className="text-red-400">{scoreCard.incorrect}</span></p>
+            <div className="p-6 bg-slate-950 rounded-2xl border border-slate-800 shadow-inner">
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Correct / Incorrect</p>
+              <p className="text-3xl font-black text-green-400">{scoreCard.correct} <span className="text-slate-600 text-xl">/</span> <span className="text-red-500">{scoreCard.incorrect}</span></p>
             </div>
-            <div className="p-4 bg-slate-950 rounded-xl border border-slate-800">
-              <p className="text-xs text-slate-400">Dynamic Percentile</p>
-              <p className="text-2xl font-bold text-blue-400">{scoreCard.percentile}</p>
+            <div className="p-6 bg-slate-950 rounded-2xl border border-slate-800 shadow-inner">
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Dynamic Percentile</p>
+              <p className="text-3xl font-black text-blue-400">{scoreCard.percentile}</p>
             </div>
-            <div className="p-4 bg-slate-950 rounded-xl border border-slate-800">
-              <p className="text-xs text-slate-400">Predicted Rank</p>
-              <p className="text-2xl font-bold text-orange-400">AIR {scoreCard.rank}</p>
+            <div className="p-6 bg-slate-950 rounded-2xl border border-slate-800 shadow-inner">
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Predicted Rank</p>
+              <p className="text-3xl font-black text-orange-400"><span className="text-lg text-slate-500">AIR</span> {scoreCard.rank}</p>
             </div>
           </div>
 
-          {/* 📊 DEEP SUBJECT-WISE ANALYSIS BREAKDOWN (Restored from the 900-line version) */}
-          <div className="p-6 bg-slate-950 rounded-2xl border border-slate-800">
-            <h3 className="font-bold text-lg text-orange-400 mb-4 text-center">📊 Subject-Wise Performance Breakdown</h3>
-            <div className="grid md:grid-cols-3 gap-6">
+          {/* 📊 DEEP SUBJECT-WISE ANALYSIS BREAKDOWN */}
+          <div className="p-8 bg-slate-950 rounded-3xl border border-slate-800 shadow-inner">
+            <h3 className="font-black text-xl text-orange-400 mb-6 text-center uppercase tracking-widest">📊 Subject-Wise Performance Breakdown</h3>
+            <div className="grid md:grid-cols-3 gap-6 md:gap-8">
               {Object.entries(scoreCard.subjectStats).map(([subj, data]) => (
-                <div key={subj} className="p-5 bg-slate-900 rounded-xl border border-slate-800 space-y-2 text-center">
-                  <h4 className="font-bold text-amber-400 text-lg border-b border-slate-700 pb-2">{subj}</h4>
-                  <p className="text-sm text-slate-400 pt-2">Subject Score: <span className="font-bold text-white text-lg">{data.score}</span></p>
-                  <p className="text-sm text-green-400">Correct: {data.correct}</p>
-                  <p className="text-sm text-red-400">Incorrect: {data.incorrect}</p>
-                  <p className="text-xs text-slate-500 mt-2">Total Questions: {data.total}</p>
+                <div key={subj} className="p-6 bg-slate-900 rounded-2xl border border-slate-700 space-y-3 text-center shadow-lg transition-transform hover:scale-105">
+                  <h4 className="font-black text-amber-400 text-xl border-b border-slate-700/50 pb-3">{subj}</h4>
+                  <div className="pt-2">
+                    <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Subject Score</p>
+                    <p className="font-black text-white text-3xl">{data.score}</p>
+                  </div>
+                  <div className="flex justify-between items-center bg-slate-950 p-3 rounded-xl border border-slate-800 mt-4">
+                    <div className="text-left">
+                      <p className="text-xs font-bold text-green-500">Correct</p>
+                      <p className="font-black text-lg text-white">{data.correct}</p>
+                    </div>
+                    <div className="w-px h-8 bg-slate-800"></div>
+                    <div className="text-right">
+                      <p className="text-xs font-bold text-red-500">Incorrect</p>
+                      <p className="font-black text-lg text-white">{data.incorrect}</p>
+                    </div>
+                  </div>
+                  <p className="text-xs font-bold text-slate-500 pt-2">Total Questions: {data.total}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="flex gap-4">
-            <button onClick={() => setCurrentView('remediation')} className="flex-1 py-4 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl transition-all">
+          <div className="flex flex-col md:flex-row gap-4 md:gap-6 pt-4">
+            <button 
+              onClick={() => setCurrentView('remediation')} 
+              className="flex-1 py-5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-lg rounded-2xl shadow-xl transition-transform transform hover:-translate-y-1"
+            >
               📖 View Actual Test Diagnostics & AI Solutions
             </button>
-            <button onClick={() => { setCurrentView('dashboard'); setScoreCard(null); }} className="px-8 py-4 bg-slate-800 hover:bg-slate-700 font-bold rounded-xl">
+            <button 
+              onClick={() => { setCurrentView('dashboard'); setScoreCard(null); }} 
+              className="px-10 py-5 bg-slate-800 hover:bg-slate-700 text-white font-black text-lg rounded-2xl transition-colors"
+            >
               Dashboard
             </button>
           </div>
@@ -706,45 +944,117 @@ export default function JEEParivarUltimateApp() {
     );
   }
 
-  // 6. MULTI-PAGE DIAGNOSTICS & REMEDIATION
+  // ----------------------------------------------------------------------------
+  // VIEW 6: DIAGNOSTICS & REMEDIATION (WITH LATEX)
+  // ----------------------------------------------------------------------------
   if (currentView === 'remediation' && scoreCard) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white p-8 max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-8 border-b border-slate-800 pb-4">
-          <h2 className="text-2xl font-black text-orange-400">📖 Real Diagnostics & AI YouTube Links</h2>
-          <button onClick={() => setCurrentView('result')} className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl text-sm font-bold">← Back to Scorecard</button>
+      <div className="min-h-screen bg-slate-950 text-white p-6 md:p-10 max-w-5xl mx-auto font-sans">
+        <div className="flex flex-col md:flex-row justify-between items-center mb-10 border-b border-slate-800 pb-6 gap-4">
+          <h2 className="text-3xl font-black text-orange-400">📖 Diagnostics & Solutions</h2>
+          <button onClick={() => setCurrentView('result')} className="px-6 py-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-sm font-bold transition-colors">
+            ← Back to Scorecard
+          </button>
         </div>
         
-        <div className="space-y-6">
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
-            <h3 className="text-lg font-bold text-amber-400 mb-2">💡 Auto-Remediation Plan</h3>
-            <p className="text-slate-300 text-sm mb-4">Detected <span className="text-red-400 font-bold">{scoreCard.sillyMistakes} silly mistakes</span> and <span className="text-orange-400 font-bold">{scoreCard.conceptualGaps} conceptual gaps</span>.</p>
-            <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 text-sm text-slate-400">
-              Recommendation: Review your subject-wise weak spots shown in the scorecard before your next mock test.
+        <div className="space-y-8">
+          <div className="bg-gradient-to-r from-slate-900 to-slate-950 border border-slate-800 p-8 rounded-3xl shadow-lg">
+            <h3 className="text-xl font-black text-amber-400 mb-3 flex items-center gap-2">💡 Auto-Remediation Plan</h3>
+            <p className="text-slate-300 text-base mb-5 leading-relaxed">
+              Based on AI analysis, we detected <span className="text-red-400 font-black bg-red-500/10 px-2 py-0.5 rounded">{scoreCard.sillyMistakes} silly mistakes</span> and <span className="text-orange-400 font-black bg-orange-500/10 px-2 py-0.5 rounded">{scoreCard.conceptualGaps} conceptual gaps</span>.
+            </p>
+            <div className="p-5 bg-slate-950 rounded-2xl border border-slate-800 text-sm font-medium text-slate-400 shadow-inner">
+              <span className="font-bold text-slate-300 uppercase tracking-wider mr-2">Recommendation:</span> Review your subject-wise weak spots identified in the scorecard before your next attempt. Pay special attention to the mathematical derivations provided below.
             </div>
           </div>
 
-          <h3 className="text-xl font-bold mt-8 mb-4">Detailed Solutions & YouTube Search References</h3>
+          <h3 className="text-2xl font-black mt-12 mb-6 text-white border-l-4 border-orange-500 pl-4">Detailed Solutions & References</h3>
+          
           {testQuestions.map((q, idx) => {
             const userAns = answers[q.id];
-            const isCorrect = userAns !== undefined && String(userAns).trim().toLowerCase() === String(q.correctAnswer).trim().toLowerCase();
+            const isAttempted = userAns !== undefined && userAns !== '';
+            const isCorrect = isAttempted && String(userAns).trim().toLowerCase() === String(q.correctAnswer).trim().toLowerCase();
             const timeSpent = questionTimers[idx] || 0;
 
+            let borderClass = 'border-slate-700';
+            let bgClass = 'bg-slate-900';
+            if (isAttempted) {
+              borderClass = isCorrect ? 'border-green-500/40' : 'border-red-500/40';
+              bgClass = isCorrect ? 'bg-green-950/20' : 'bg-red-950/20';
+            }
+
             return (
-              <div key={q.id} className={`p-6 rounded-2xl border ${isCorrect ? 'bg-slate-900/50 border-green-500/30' : 'bg-slate-900 border-red-500/30'}`}>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-xs font-bold text-orange-400">Q{idx + 1}. {q.subject} (Time spent: {timeSpent}s)</span>
-                  <span className={`text-xs px-2 py-1 rounded font-bold ${isCorrect ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                    {isCorrect ? 'Correct ✅' : 'Incorrect ❌'}
+              <div key={q.id} className={`p-8 rounded-3xl border-2 ${borderClass} ${bgClass} shadow-lg relative overflow-hidden`}>
+                
+                {/* Status Ribbon */}
+                <div className={`absolute top-0 right-0 px-6 py-1.5 text-xs font-black uppercase tracking-widest rounded-bl-xl ${
+                  !isAttempted ? 'bg-slate-800 text-slate-400' : isCorrect ? 'bg-green-500 text-slate-950' : 'bg-red-500 text-slate-950'
+                }`}>
+                  {!isAttempted ? 'Unattempted' : isCorrect ? 'Correct ✅' : 'Incorrect ❌'}
+                </div>
+
+                <div className="flex justify-between items-center mb-6 pt-2">
+                  <span className="text-sm font-black text-orange-400 uppercase tracking-wider bg-orange-500/10 px-3 py-1 rounded-lg border border-orange-500/20">
+                    Q{idx + 1}. {q.subject} 
+                    <span className="text-slate-500 ml-2 border-l border-slate-700 pl-2">Time: {timeSpent}s</span>
                   </span>
                 </div>
-                <p className="text-sm font-mono mb-3 text-amber-200">{q.text}</p>
-                <div className="p-3 bg-slate-950 rounded-xl text-xs text-slate-300 mb-3 border border-slate-800 font-mono">
-                  <strong className="text-amber-400">Solution:</strong> {q.solution || 'Detailed extraction from PDF'}
+                
+                <div className="text-lg mb-6 text-white leading-relaxed overflow-x-auto bg-slate-950/50 p-5 rounded-2xl border border-slate-800/50">
+                  {/* 👇 LATEX IN DIAGNOSTICS 👇 */}
+                  <Latex>{q.text}</Latex>
                 </div>
+
+                {q.type === 'MCQ' && (
+                  <div className="mb-6 space-y-2">
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Options provided:</p>
+                    {q.options.map((opt, oIdx) => (
+                      <div key={oIdx} className={`p-3 rounded-xl border flex items-center text-sm ${
+                        oIdx === q.correctAnswer ? 'bg-green-500/10 border-green-500/30 text-green-300' : 
+                        (isAttempted && oIdx === userAns && !isCorrect) ? 'bg-red-500/10 border-red-500/30 text-red-300' : 
+                        'bg-slate-950 border-slate-800/50 text-slate-400'
+                      }`}>
+                        <span className="font-black mr-3">{String.fromCharCode(65 + oIdx)}.</span> 
+                        <Latex>{opt}</Latex>
+                        {oIdx === q.correctAnswer && <span className="ml-auto text-xs font-black text-green-500">CORRECT ANSWER</span>}
+                        {(isAttempted && oIdx === userAns && !isCorrect) && <span className="ml-auto text-xs font-black text-red-500">YOUR ANSWER</span>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {q.type === 'INTEGER' && (
+                  <div className="mb-6 flex gap-4">
+                    <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 flex-1">
+                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Correct Answer</p>
+                      <p className="text-xl font-black text-green-400">{q.correctAnswer}</p>
+                    </div>
+                    <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 flex-1">
+                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Your Answer</p>
+                      <p className={`text-xl font-black ${!isAttempted ? 'text-slate-600' : isCorrect ? 'text-green-400' : 'text-red-400'}`}>
+                        {!isAttempted ? 'N/A' : userAns}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="p-6 bg-slate-950 rounded-2xl text-base text-slate-300 mb-4 border border-slate-800 shadow-inner overflow-x-auto">
+                  <strong className="text-amber-400 block mb-3 text-sm uppercase tracking-wider font-black">Detailed Solution:</strong>
+                  {/* 👇 LATEX IN SOLUTIONS 👇 */}
+                  <div className="leading-relaxed">
+                    <Latex>{q.solution || 'Detailed extraction from PDF mapped to Answer Key.'}</Latex>
+                  </div>
+                </div>
+                
                 {!isCorrect && (
-                  <a href={q.youtubeLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-xs bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-lg shadow">
-                    ▶ Search Expected Solution on YouTube
+                  <a 
+                    href={q.youtubeLink} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="inline-flex items-center gap-2 text-sm bg-red-600 hover:bg-red-500 text-white font-black px-6 py-3 rounded-xl shadow-lg transition-transform hover:-translate-y-0.5 mt-2"
+                  >
+                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
+                    Search Expected Solution on YouTube
                   </a>
                 )}
               </div>
