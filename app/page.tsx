@@ -137,7 +137,7 @@ export default function JEEParivarUltimateLatexApp() {
   };
 
   // ============================================================================
-  // 5. DIRECT FRONTEND-TO-GEMINI API CALL (UPDATED TO GEMINI-2.5-FLASH)
+  // 5. DIRECT FRONTEND-TO-GEMINI API CALL (UPDATED TO GEMINI-3.5-FLASH)
   // ============================================================================
   const handleRealPdfUploadAndParse = async () => {
     if (!questionFile) {
@@ -223,7 +223,7 @@ export default function JEEParivarUltimateLatexApp() {
 
       parts.push({ text: promptText });
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
