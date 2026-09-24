@@ -8,15 +8,15 @@ import 'katex/dist/katex.min.css';
 import Latex from 'react-latex-next';
 
 // ============================================================================
-// 🔑 GEMINI API KEY CONFIGURATION
+// 🔑 OPENROUTER API KEY CONFIGURATION (100% FREE MODEL)
 // ============================================================================
-const GEMINI_API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY || ""; 
+const OPENROUTER_API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY || ""; 
 
 export default function JEEParivarUltimateLatexApp() {
   // ============================================================================
-  // 1. STATE MANAGEMENT
+  // 1. STATE MANAGEMENT (Full Features)
   // ============================================================================
-  const [currentView, setCurrentView] = useState<'landing' | 'login' | 'dashboard' | 'test' | 'result' | 'remediation'>('landing');
+  const [currentView, setCurrentView] = useState<'landing' | 'login' | 'dashboard' | 'test' | 'result' | 'remediation' | 'focus'>('landing');
   const [authMethod, setAuthMethod] = useState<'choice' | 'phone' | 'google' | 'name'>('choice');
   
   const [studentName, setStudentName] = useState('');
@@ -26,38 +26,72 @@ export default function JEEParivarUltimateLatexApp() {
   
   const [examType, setExamType] = useState<'MAIN' | 'ADVANCED' | 'DEMO' | 'REAL_PDF'>('MAIN');
   const [customMinutes, setCustomMinutes] = useState(180);
-  const [timer, setTimer] = useState(10800); // Default 3 hours
+  const [timer, setTimer] = useState(10800); 
   
   const [testQuestions, setTestQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState({});
-  const [reviewStatus, setReviewStatus] = useState({}); // Track Mark for Review
+  const [reviewStatus, setReviewStatus] = useState({}); 
   const [questionTimers, setQuestionTimers] = useState({});
 
   const [questionFile, setQuestionFile] = useState(null);
   const [answerKeyFile, setAnswerKeyFile] = useState(null);
   const [isProcessingPdf, setIsProcessingPdf] = useState(false);
-
   const [scoreCard, setScoreCard] = useState(null);
 
+  // Focus Mode & Hardcore Lockdown States
+  const [focusMinutes, setFocusMinutes] = useState(25);
+  const [focusTimerSeconds, setFocusTimerSeconds] = useState(25 * 60);
+  const [isFocusActive, setIsFocusActive] = useState(false);
+  const [isLockedDown, setIsLockedDown] = useState(false);
+  const [typedVerification, setTypedVerification] = useState('');
+  const [focusSessions, setFocusSessions] = useState([]);
+  const [analyticsTab, setAnalyticsTab] = useState<'today' | 'week' | 'month' | 'year'>('today');
+
   // ============================================================================
-  // 2. SECURITY & ANTI-CHEAT SYSTEM (BYPASSED)
+  // 2. LOCALSTORAGE PERSISTENCE (State Retention on Refresh)
   // ============================================================================
   useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.hidden && currentView === 'test' && examType !== 'DEMO') {
-        console.log("Tab switched, but security is bypassed.");
-      }
-    };
-    const handleContextMenu = (e) => {};
+    const savedFocus = localStorage.getItem('jee_focus_sessions');
+    if (savedFocus) {
+      try { setFocusSessions(JSON.parse(savedFocus)); } catch (e) {}
+    }
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    document.addEventListener('contextmenu', handleContextMenu);
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      document.removeEventListener('contextmenu', handleContextMenu);
-    };
-  }, [currentView, examType]);
+    const savedQuestions = localStorage.getItem('jee_test_questions');
+    const savedAnswers = localStorage.getItem('jee_test_answers');
+    const savedView = localStorage.getItem('jee_current_view');
+
+    if (savedQuestions) {
+      try { setTestQuestions(JSON.parse(savedQuestions)); } catch (e) {}
+    }
+    if (savedAnswers) {
+      try { setAnswers(JSON.parse(savedAnswers)); } catch (e) {}
+    }
+    if (savedView && savedView !== 'landing' && savedView !== 'login') {
+      setCurrentView(savedView);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (testQuestions.length > 0) {
+      localStorage.setItem('jee_test_questions', JSON.stringify(testQuestions));
+    }
+  }, [testQuestions]);
+
+  useEffect(() => {
+    localStorage.setItem('jee_test_answers', JSON.stringify(answers));
+  }, [answers]);
+
+  useEffect(() => {
+    localStorage.setItem('jee_current_view', currentView);
+  }, [currentView]);
+
+  const saveFocusSession = (minutesSpent) => {
+    const newSession = { date: new Date().toISOString(), minutes: minutesSpent };
+    const updated = [newSession, ...focusSessions];
+    setFocusSessions(updated);
+    localStorage.setItem('jee_focus_sessions', JSON.stringify(updated));
+  };
 
   // ============================================================================
   // 3. GLOBAL TIMER & PER-QUESTION TIMER LOGIC
@@ -77,6 +111,44 @@ export default function JEEParivarUltimateLatexApp() {
     }
     return () => clearInterval(interval);
   }, [currentView, timer, scoreCard, currentQuestionIndex]);
+
+  // Focus Timer Countdown
+  useEffect(() => {
+    let interval;
+    if (isFocusActive && !isLockedDown && focusTimerSeconds > 0) {
+      interval = setInterval(() => {
+        setFocusTimerSeconds(prev => prev - 1);
+      }, 1000);
+    } else if (focusTimerSeconds === 0 && isFocusActive) {
+      setIsFocusActive(false);
+      saveFocusSession(focusMinutes);
+      alert('🎉 Focus Session Completed Successfully! Great job, Future IITian!');
+    }
+    return () => clearInterval(interval);
+  }, [isFocusActive, isLockedDown, focusTimerSeconds, focusMinutes]);
+
+  // Tab Switch Detection & Hardcore Lockdown Trigger
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && isFocusActive && !isLockedDown) {
+        setIsLockedDown(true);
+        setTypedVerification('');
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [isFocusActive, isLockedDown]);
+
+  const handleVerifySubmit = (e) => {
+    e.preventDefault();
+    if (typedVerification.trim() === 'I AM PRODUCTIVE') {
+      setIsLockedDown(false);
+      setTypedVerification('');
+    } else {
+      alert('❌ Incorrect! You must type exactly: I AM PRODUCTIVE');
+      setTypedVerification('');
+    }
+  };
 
   const formatTime = (seconds) => {
     const hrs = Math.floor(seconds / 3600);
@@ -136,8 +208,25 @@ export default function JEEParivarUltimateLatexApp() {
     return `https://www.youtube.com/results?search_query=${query}`;
   };
 
+  // Analytics Calculations
+  const getFilteredSessions = (period) => {
+    const now = new Date();
+    return focusSessions.filter(session => {
+      const sessionDate = new Date(session.date);
+      if (period === 'today') return sessionDate.toDateString() === now.toDateString();
+      if (period === 'week') return (Math.abs(now - sessionDate) / (1000 * 60 * 60 * 24)) <= 7;
+      if (period === 'month') return sessionDate.getMonth() === now.getMonth() && sessionDate.getFullYear() === now.getFullYear();
+      if (period === 'year') return sessionDate.getFullYear() === now.getFullYear();
+      return true;
+    });
+  };
+
+  const currentFilteredSessions = getFilteredSessions(analyticsTab);
+  const totalMinutesStudied = currentFilteredSessions.reduce((acc, curr) => acc + curr.minutes, 0);
+  const totalHoursStudied = (totalMinutesStudied / 60).toFixed(1);
+
   // ============================================================================
-  // 5. DIRECT FRONTEND-TO-GEMINI API CALL (GEMINI-3.8-FLASH + RETRY)
+  // 5. OPENROUTER FREE API PDF PARSING
   // ============================================================================
   const handleRealPdfUploadAndParse = async () => {
     if (!questionFile) {
@@ -147,7 +236,7 @@ export default function JEEParivarUltimateLatexApp() {
 
     setIsProcessingPdf(true);
 
-    if (!GEMINI_API_KEY) {
+    if (!OPENROUTER_API_KEY) {
       alert('⚠️ API Key missing! Running Simulation Mode.');
       setTimeout(() => {
         setIsProcessingPdf(false);
@@ -193,76 +282,44 @@ export default function JEEParivarUltimateLatexApp() {
       });
 
       const qBase64 = await getBase64(questionFile);
-      let promptText = `You are an expert JEE exam parser. I have attached the Question Paper PDF. `;
-      
-      const parts = [
-        { inlineData: { data: qBase64, mimeType: 'application/pdf' } }
+      let contentArray = [
+        { type: "text", text: "You are an expert JEE exam parser. Extract EVERY SINGLE QUESTION present in this PDF. Do not skip, summarize, or truncate. Preserve all mathematical equations in standard LaTeX format wrapped in single $ for inline or double $$ for block equations. Return ONLY a raw valid JSON array format like this (NO markdown code blocks, NO backticks): [ { \"id\": 1, \"subject\": \"Physics/Chemistry/Mathematics\", \"type\": \"MCQ\" or \"INTEGER\", \"text\": \"...\", \"options\": [\"A\",\"B\",\"C\",\"D\"], \"correctAnswer\": 0, \"solution\": \"...\" } ]" },
+        { type: "image_url", image_url: { url: `data:application/pdf;base64,${qBase64}` } }
       ];
 
       if (answerKeyFile) {
         const akBase64 = await getBase64(answerKeyFile);
-        parts.push({ inlineData: { data: akBase64, mimeType: 'application/pdf' } });
-        promptText += `I have also attached the Answer Key PDF. `;
+        contentArray.push({ type: "image_url", image_url: { url: `data:application/pdf;base64,${akBase64}` } });
       }
 
-      promptText += `
-      CRITICAL INSTRUCTION 1: You MUST extract EVERY SINGLE QUESTION present in the attached PDF. Do not skip, summarize, or truncate. Process the entire document page by page. If there are 30, 50, or 75 questions, return ALL of them in the JSON array.
-      CRITICAL INSTRUCTION 2: Preserve all mathematical equations and symbols in standard LaTeX format wrapped in single $ for inline or double $$ for block equations.
-      Return ONLY a raw valid JSON array format like this (NO markdown code blocks, NO backticks, NO extra text):
-      [
-        {
-          "id": 1,
-          "subject": "Physics/Chemistry/Mathematics",
-          "type": "MCQ" or "INTEGER",
-          "text": "Question text with $math$...",
-          "options": ["A", "B", "C", "D"],
-          "correctAnswer": 0,
-          "solution": "Step by step solution with $math$..."
-        }
-      ]`;
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+          "HTTP-Referer": window.location.origin,
+          "X-Title": "JEE Parivar",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "google/gemini-flash-1.5:free", // 100% Free OpenRouter Tier Model
+          messages: [{ role: "user", content: contentArray }],
+          temperature: 0.1
+        })
+      });
 
-      parts.push({ text: promptText });
+      const resultData = await response.json();
 
-      let response;
-      let resultData;
-      let retries = 3;
-
-      while (retries > 0) {
-        try {
-          response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${GEMINI_API_KEY}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              contents: [{ parts: parts }],
-              generationConfig: {
-                maxOutputTokens: 8192,
-                temperature: 0.1
-              }
-            })
-          });
-
-          resultData = await response.json();
-
-          if (response.ok) break;
-
-          if (response.status === 503 || (resultData.error && resultData.error.message?.includes('high demand'))) {
-            retries--;
-            if (retries === 0) throw new Error(resultData.error?.message || 'Server is experiencing high demand. Please try again in a moment.');
-            await new Promise(resolve => setTimeout(resolve, 3000));
-            continue;
-          } else {
-            throw new Error(resultData.error?.message || 'Failed to fetch from Gemini API');
-          }
-        } catch (fetchErr) {
-          retries--;
-          if (retries === 0) throw fetchErr;
-          await new Promise(resolve => setTimeout(resolve, 3000));
-        }
+      if (!response.ok) {
+        throw new Error(resultData.error?.message || 'Failed to fetch from OpenRouter API');
       }
 
-      const rawText = resultData.candidates[0].content.parts[0].text;
+      const rawText = resultData?.choices?.[0]?.message?.content;
+      if (!rawText) {
+        throw new Error('API returned empty response structure: ' + JSON.stringify(resultData));
+      }
+
       const jsonMatch = rawText.match(/\[[\s\S]*\]/);
-      if (!jsonMatch) throw new Error('AI did not return a valid JSON format.');
+      if (!jsonMatch) throw new Error('AI did not return a valid JSON array format.');
 
       const parsedQuestions = JSON.parse(jsonMatch[0]);
 
@@ -441,7 +498,7 @@ export default function JEEParivarUltimateLatexApp() {
         <header className="relative overflow-hidden py-24 px-6 text-center bg-gradient-to-b from-slate-900 to-slate-950 border-b border-slate-900">
           <div className="max-w-4xl mx-auto relative z-10">
             <div className="inline-block mb-6 px-4 py-1.5 rounded-full bg-slate-800 text-amber-400 text-sm font-semibold border border-slate-700 shadow-md">🔥 Target: AIR Under 1000 • Developed by Amit</div>
-            <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-6 leading-tight">Master JEE with <br /> <span className="bg-gradient-to-r from-orange-400 via-amber-300 to-yellow-500 bg-clip-text text-transparent">Direct AI PDF Parsing & Real Math Equations</span></h1>
+            <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-6 leading-tight">Master JEE with <br /> <span className="bg-gradient-to-r from-orange-400 via-amber-300 to-yellow-500 bg-clip-text text-transparent">Free OpenRouter AI & Focus Analytics</span></h1>
             <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">Completely bypass anti-cheat restrictions. Upload PDFs directly from your browser to AI for exact extraction. Deep subject-wise analysis and LaTeX equation rendering included.</p>
             <button onClick={() => setCurrentView('login')} className="px-10 py-4 bg-orange-500 hover:bg-orange-600 font-black text-lg rounded-xl shadow-xl transition-all transform hover:-translate-y-1">Enter Portal & Login 🎯</button>
           </div>
@@ -554,7 +611,12 @@ export default function JEEParivarUltimateLatexApp() {
             <h1 className="text-xl md:text-2xl font-black text-orange-400">Welcome, {studentName} 🎯</h1>
             <p className="text-xs md:text-sm text-slate-400 mt-1">Target: IIT Bombay / Delhi • Testing Dashboard</p>
           </div>
-          <button onClick={() => setCurrentView('landing')} className="text-xs md:text-sm px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 font-bold transition-colors">Logout</button>
+          <div className="flex items-center gap-4">
+            <button onClick={() => setCurrentView('focus')} className="px-5 py-2.5 bg-purple-600 hover:bg-purple-500 text-xs md:text-sm font-black rounded-xl shadow-lg transition-all flex items-center gap-2">
+              ⏱️ Focus Mode & Analytics
+            </button>
+            <button onClick={() => setCurrentView('landing')} className="text-xs md:text-sm px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 font-bold transition-colors">Logout</button>
+          </div>
         </header>
 
         <main className="flex-1 p-6 md:p-10 max-w-5xl mx-auto w-full space-y-8">
@@ -569,8 +631,8 @@ export default function JEEParivarUltimateLatexApp() {
 
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-10 space-y-8 shadow-xl">
             <div>
-              <h2 className="text-2xl font-black text-orange-400 flex items-center gap-2">🧠 Direct API PDF Extraction (Math Mode)</h2>
-              <p className="text-slate-400 text-sm mt-2">Upload real Question Papers. Ensure Gemini API key is set in Vercel Envs to extract actual mathematical equations into LaTeX.</p>
+              <h2 className="text-2xl font-black text-orange-400 flex items-center gap-2">🧠 Free OpenRouter PDF Extraction (Math Mode)</h2>
+              <p className="text-slate-400 text-sm mt-2">Upload real Question Papers. Powered by OpenRouter free tier model for exact LaTeX extraction.</p>
             </div>
             <div className="grid md:grid-cols-2 gap-6 md:gap-8">
               <div className="p-6 bg-slate-950 border border-slate-800 rounded-2xl transition-colors hover:border-orange-500/50">
@@ -585,7 +647,7 @@ export default function JEEParivarUltimateLatexApp() {
               </div>
             </div>
             <button onClick={handleRealPdfUploadAndParse} disabled={isProcessingPdf} className="w-full py-4 bg-green-600 hover:bg-green-500 font-black text-lg rounded-xl shadow-lg shadow-green-600/20 transition-all">
-              {isProcessingPdf ? '⏳ AI is Processing All Equations (Auto-retrying if busy)...' : 'Extract Math Data & Start Test 🤖'}
+              {isProcessingPdf ? '⏳ Processing PDF via Free AI...' : 'Extract Math Data & Start Test 🤖'}
             </button>
           </div>
           
@@ -943,6 +1005,107 @@ export default function JEEParivarUltimateLatexApp() {
               </div>
             );
           })}
+        </div>
+      </div>
+    );
+  }
+
+  // ============================================================================
+  // ⏱️ FOCUS MODE & "I AM PRODUCTIVE" LOCKDOWN VIEW
+  // ============================================================================
+  if (currentView === 'focus') {
+    const formatFocusTime = (secs) => {
+      const m = Math.floor(secs / 60);
+      const s = secs % 60;
+      return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    };
+
+    return (
+      <div className="min-h-screen bg-slate-950 text-white p-6 md:p-10 max-w-4xl mx-auto space-y-8 relative font-sans">
+        
+        {/* 🔥 HARDCORE LOCKDOWN MODAL SCREEN */}
+        {isLockedDown && (
+          <div className="fixed inset-0 bg-slate-950/95 backdrop-blur-xl z-50 flex items-center justify-center p-6">
+            <div className="bg-slate-900 border-2 border-red-500 p-8 md:p-10 rounded-3xl max-w-md w-full shadow-2xl text-center space-y-6 animate-in zoom-in-95 duration-200">
+              <span className="text-4xl">🚨</span>
+              <h3 className="text-2xl font-black text-red-400">Tab Switch Detected!</h3>
+              <p className="text-slate-300 text-sm leading-relaxed">
+                To resume your focus session and unlock the screen, prove your study mindset by typing:
+              </p>
+              <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 text-amber-400 font-mono font-black text-lg tracking-wider">
+                I AM PRODUCTIVE
+              </div>
+              <form onSubmit={handleVerifySubmit} className="space-y-4">
+                <input 
+                  type="text" 
+                  autoFocus 
+                  placeholder="Type here..." 
+                  value={typedVerification} 
+                  onChange={(e) => setTypedVerification(e.target.value)} 
+                  className="w-full p-4 bg-slate-950 border border-slate-700 rounded-xl text-white text-center font-bold outline-none focus:border-red-500" 
+                />
+                <button type="submit" className="w-full py-4 bg-red-600 hover:bg-red-500 font-black rounded-xl shadow-lg transition-all">
+                  Unlock & Resume Focus 🚀
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        <div className="flex justify-between items-center border-b border-slate-800 pb-4">
+          <h2 className="text-3xl font-black text-orange-400">⏳ Strict Focus Timer & Analytics</h2>
+          <button onClick={() => setCurrentView('dashboard')} className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl font-bold transition-colors">← Dashboard</button>
+        </div>
+
+        {/* Focus Timer Card */}
+        <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl text-center space-y-6 shadow-2xl">
+          <h3 className="text-xl font-bold text-slate-300">Lock-In Study Session</h3>
+          <div className="text-6xl md:text-8xl font-mono font-black text-amber-400 tracking-wider">
+            {formatFocusTime(focusTimerSeconds)}
+          </div>
+
+          {!isFocusActive ? (
+            <div className="space-y-4">
+              <div className="flex justify-center gap-3">
+                {[15, 25, 45, 60].map((mins) => (
+                  <button key={mins} onClick={() => { setFocusMinutes(mins); setFocusTimerSeconds(mins * 60); }} className={`px-4 py-2 rounded-xl font-bold border ${focusMinutes === mins ? 'bg-orange-500 border-orange-500 text-slate-950' : 'bg-slate-950 border-slate-800 text-slate-400'}`}>
+                    {mins}m
+                  </button>
+                ))}
+              </div>
+              <button onClick={() => setIsFocusActive(true)} className="px-10 py-4 bg-green-600 hover:bg-green-500 font-black text-lg rounded-xl shadow-lg transition-transform transform hover:scale-105">Start Focus Session 🔒</button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-green-400 font-bold text-sm animate-pulse">🔒 TAB SWITCH GUARD ACTIVE: Switching tabs triggers "I AM PRODUCTIVE" verification!</p>
+              <button onClick={() => { setIsFocusActive(false); alert('Focus session cancelled.'); }} className="px-8 py-3 bg-red-600 hover:bg-red-500 font-bold rounded-xl transition-colors">Cancel Session ❌</button>
+            </div>
+          )}
+        </div>
+
+        {/* Analytics Section */}
+        <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl space-y-6 shadow-2xl">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <h3 className="text-xl font-black text-orange-400">📈 Focus Analytics & Records</h3>
+            <div className="flex bg-slate-950 p-1.5 rounded-xl border border-slate-800">
+              {['today', 'week', 'month', 'year'].map((tab) => (
+                <button key={tab} onClick={() => setAnalyticsTab(tab)} className={`px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider transition-all ${analyticsTab === tab ? 'bg-orange-500 text-slate-950' : 'text-slate-400 hover:text-white'}`}>
+                  {tab}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="p-6 bg-slate-950 rounded-2xl border border-slate-800 text-center shadow-inner">
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Total Study Time ({analyticsTab})</p>
+              <p className="text-4xl font-black text-amber-400">{totalHoursStudied} <span className="text-lg text-slate-400">Hours</span></p>
+            </div>
+            <div className="p-6 bg-slate-950 rounded-2xl border border-slate-800 text-center shadow-inner">
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Completed Sessions</p>
+              <p className="text-4xl font-black text-green-400">{currentFilteredSessions.length} <span className="text-lg text-slate-400">Sessions</span></p>
+            </div>
+          </div>
         </div>
       </div>
     );
