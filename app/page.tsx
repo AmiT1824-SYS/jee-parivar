@@ -8,11 +8,14 @@ import 'katex/dist/katex.min.css';
 import Latex from 'react-latex-next';
 
 // ============================================================================
-// 🔑 DIRECT OPENROUTER API KEY CONFIGURATION
+// 🔑 SECURE OPENROUTER API KEY CONFIGURATION
 // ============================================================================
-const OPENROUTER_API_KEY = "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"; 
+const OPENROUTER_API_KEY = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY || ""; 
 
 export default function JEEParivarUltimateLatexApp() {
+  // ============================================================================
+  // 1. STATE MANAGEMENT
+  // ============================================================================
   const [currentView, setCurrentView] = useState<'landing' | 'login' | 'dashboard' | 'test' | 'result' | 'remediation' | 'focus'>('landing');
   const [authMethod, setAuthMethod] = useState<'choice' | 'phone' | 'google' | 'name'>('choice');
   
@@ -36,6 +39,7 @@ export default function JEEParivarUltimateLatexApp() {
   const [isProcessingPdf, setIsProcessingPdf] = useState(false);
   const [scoreCard, setScoreCard] = useState(null);
 
+  // Focus Mode & Lockdown States
   const [focusMinutes, setFocusMinutes] = useState(25);
   const [focusTimerSeconds, setFocusTimerSeconds] = useState(25 * 60);
   const [isFocusActive, setIsFocusActive] = useState(false);
@@ -44,6 +48,9 @@ export default function JEEParivarUltimateLatexApp() {
   const [focusSessions, setFocusSessions] = useState([]);
   const [analyticsTab, setAnalyticsTab] = useState<'today' | 'week' | 'month' | 'year'>('today');
 
+  // ============================================================================
+  // 2. LOCALSTORAGE PERSISTENCE
+  // ============================================================================
   useEffect(() => {
     const savedFocus = localStorage.getItem('jee_focus_sessions');
     if (savedFocus) {
@@ -86,6 +93,9 @@ export default function JEEParivarUltimateLatexApp() {
     localStorage.setItem('jee_focus_sessions', JSON.stringify(updated));
   };
 
+  // ============================================================================
+  // 3. TIMERS & LOCKDOWN LOGIC
+  // ============================================================================
   useEffect(() => {
     let interval;
     if (currentView === 'test' && timer > 0 && !scoreCard) {
@@ -145,6 +155,9 @@ export default function JEEParivarUltimateLatexApp() {
     return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // ============================================================================
+  // 4. TEST INTERFACE ACTIONS
+  // ============================================================================
   const handleVirtualKeypad = (char) => {
     const q = testQuestions[currentQuestionIndex];
     if (!q) return;
@@ -210,7 +223,7 @@ export default function JEEParivarUltimateLatexApp() {
   const totalHoursStudied = (totalMinutesStudied / 60).toFixed(1);
 
   // ============================================================================
-  // OPENROUTER PDF PARSING (Using standard stable model)
+  // 5. OPENROUTER PDF PARSING
   // ============================================================================
   const handleRealPdfUploadAndParse = async () => {
     if (!questionFile) {
@@ -219,6 +232,12 @@ export default function JEEParivarUltimateLatexApp() {
     }
 
     setIsProcessingPdf(true);
+
+    if (!OPENROUTER_API_KEY) {
+      alert('⚠️ API Key missing in Vercel Environment Variables!');
+      setIsProcessingPdf(false);
+      return;
+    }
 
     try {
       const getBase64 = (file) => new Promise((resolve, reject) => {
@@ -248,7 +267,7 @@ export default function JEEParivarUltimateLatexApp() {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model: "google/gemini-flash-1.5", // 👈 Stable OpenRouter Model
+          model: "google/gemini-flash-1.5",
           messages: [{ role: "user", content: contentArray }],
           temperature: 0.1
         })
@@ -420,6 +439,10 @@ export default function JEEParivarUltimateLatexApp() {
     setCurrentView('result');
   };
 
+  // ============================================================================
+  // VIEWS RENDER
+  // ============================================================================
+
   if (currentView === 'landing') {
     return (
       <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-orange-500 selection:text-white">
@@ -428,7 +451,7 @@ export default function JEEParivarUltimateLatexApp() {
             <span className="text-2xl font-black bg-gradient-to-r from-orange-500 to-amber-400 bg-clip-text text-transparent">JEE PARIVAR 🏛️</span>
             <span className="text-xs px-2.5 py-1 bg-orange-500/20 text-orange-400 rounded-full border border-orange-500/30 font-semibold hidden md:inline-block">IIT Bombay & Kharagpur Mission</span>
           </div>
-          <button onClick={() => setCurrentView('login')} className="px-6 py-2.5 bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 font-bold rounded-xl shadow-lg transition-all transform hover:scale-105">
+          <button onClick={() => { setCurrentView('login'); setAuthMethod('choice'); }} className="px-6 py-2.5 bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 font-bold rounded-xl shadow-lg transition-all transform hover:scale-105">
             Student Login 🚀
           </button>
         </nav>
@@ -437,7 +460,7 @@ export default function JEEParivarUltimateLatexApp() {
             <div className="inline-block mb-6 px-4 py-1.5 rounded-full bg-slate-800 text-amber-400 text-sm font-semibold border border-slate-700 shadow-md">🔥 Target: AIR Under 1000 • Developed by Amit</div>
             <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-6 leading-tight">Master JEE with <br /> <span className="bg-gradient-to-r from-orange-400 via-amber-300 to-yellow-500 bg-clip-text text-transparent">OpenRouter AI & Focus Analytics</span></h1>
             <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">Completely bypass anti-cheat restrictions. Upload PDFs directly from your browser to AI for exact extraction. Deep subject-wise analysis and LaTeX equation rendering included.</p>
-            <button onClick={() => setCurrentView('login')} className="px-10 py-4 bg-orange-500 hover:bg-orange-600 font-black text-lg rounded-xl shadow-xl transition-all transform hover:-translate-y-1">Enter Portal & Login 🎯</button>
+            <button onClick={() => { setCurrentView('login'); setAuthMethod('choice'); }} className="px-10 py-4 bg-orange-500 hover:bg-orange-600 font-black text-lg rounded-xl shadow-xl transition-all transform hover:-translate-y-1">Enter Portal & Login 🎯</button>
           </div>
         </header>
         <section className="py-20 px-6 max-w-6xl mx-auto">
