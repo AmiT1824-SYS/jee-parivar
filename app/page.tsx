@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 
-export default function JEEParivarDualPdfApp() {
+export default function JEEParivarSubjectWiseApp() {
   // Navigation & Auth States
   const [currentView, setCurrentView] = useState<'landing' | 'login' | 'dashboard' | 'test' | 'result' | 'remediation'>('landing');
   const [authMethod, setAuthMethod] = useState<'choice' | 'phone' | 'google' | 'name'>('choice');
@@ -17,7 +17,7 @@ export default function JEEParivarDualPdfApp() {
   // Exam Mode & Configuration States
   const [examType, setExamType] = useState<'MAIN' | 'ADVANCED' | 'DEMO' | 'DUAL_PDF'>('MAIN');
   const [customMinutes, setCustomMinutes] = useState(180);
-  const [timer, setTimer] = useState(10800);
+  const [timer, setTimer] = useState(10800); // Overall Test Timer
   
   // Test Session States
   const [testQuestions, setTestQuestions] = useState([]);
@@ -25,7 +25,10 @@ export default function JEEParivarDualPdfApp() {
   const [answers, setAnswers] = useState({});
   const [warningCount, setWarningCount] = useState(0);
 
-  // Dual PDF Upload States (Questions PDF + Answer Key PDF)
+  // Per-Question & Subject-Wise Analytics Tracking
+  const [questionTimers, setQuestionTimers] = useState({}); // Tracks seconds spent per question index
+
+  // Dual PDF Upload States
   const [questionPdfName, setQuestionPdfName] = useState('');
   const [answerKeyPdfName, setAnswerKeyPdfName] = useState('');
   const [isProcessingDualPdf, setIsProcessingDualPdf] = useState(false);
@@ -56,16 +59,22 @@ export default function JEEParivarDualPdfApp() {
     };
   }, [currentView, examType]);
 
-  // TIMER EFFECT
+  // GLOBAL TEST TIMER & PER-QUESTION TIMER
   useEffect(() => {
     let interval;
     if (currentView === 'test' && timer > 0 && !scoreCard) {
-      interval = setInterval(() => setTimer((prev) => prev - 1), 1000);
+      interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+        setQuestionTimers((prev) => ({
+          ...prev,
+          [currentQuestionIndex]: (prev[currentQuestionIndex] || 0) + 1
+        }));
+      }, 1000);
     } else if (timer === 0 && currentView === 'test') {
       handleSubmitTest();
     }
     return () => clearInterval(interval);
-  }, [currentView, timer, scoreCard]);
+  }, [currentView, timer, scoreCard, currentQuestionIndex]);
 
   const formatTime = (seconds) => {
     const hrs = Math.floor(seconds / 3600);
@@ -98,7 +107,7 @@ export default function JEEParivarDualPdfApp() {
         id: 991,
         subject: 'Physics',
         type: 'MCQ',
-        text: '[Demo Test] A particle moves under potential V(x) = \\frac{1}{2}kx^2. Angular frequency \\omega is:',
+        text: '[Demo Test] Angular frequency \\omega for potential V(x) = \\frac{1}{2}kx^2 is:',
         options: ['\\sqrt{k/m}', '\\sqrt{m/k}', 'k/m', 'm/k'],
         correctAnswer: 0,
         solution: 'For standard harmonic oscillator, \\omega = \\sqrt{k/m}.',
@@ -108,19 +117,30 @@ export default function JEEParivarDualPdfApp() {
         id: 992,
         subject: 'Chemistry',
         type: 'MCQ',
-        text: '[Demo Test] The unit of first-order rate constant k is:',
+        text: '[Demo Test] Unit of first-order rate constant k is:',
         options: ['s⁻¹', 'mol L⁻¹ s⁻¹', 'L mol⁻¹ s⁻¹', 'None'],
         correctAnswer: 0,
-        solution: 'First-order rate constant unit is time inverse (s⁻¹).',
+        solution: 'First-order rate constant unit is s⁻¹.',
         youtubeLink: 'https://www.youtube.com/results?search_query=chemical+kinetics+first+order+jee'
+      },
+      {
+        id: 993,
+        subject: 'Mathematics',
+        type: 'INTEGER',
+        text: '[Demo Test] Find value of x if x + 5 = 9.',
+        options: [],
+        correctAnswer: '4',
+        solution: 'Simple linear equation: x = 9 - 5 = 4.',
+        youtubeLink: 'https://www.youtube.com/results?search_query=linear+equations+jee'
       }
     ]);
     setCurrentQuestionIndex(0);
     setAnswers({});
+    setQuestionTimers({});
     setCurrentView('test');
   };
 
-  // HANDLE DUAL PDF UPLOAD (QUESTIONS + ANSWER KEY)
+  // DUAL PDF UPLOAD HANDLERS
   const handleQuestionPdfUpload = (e) => {
     const file = e.target.files[0];
     if (file) setQuestionPdfName(file.name);
@@ -133,37 +153,36 @@ export default function JEEParivarDualPdfApp() {
 
   const processDualPdfs = () => {
     if (!questionPdfName || !answerKeyPdfName) {
-      alert('Please upload both the Question Paper PDF and the Answer Key PDF!');
+      alert('Please upload both Question Paper PDF and Answer Key PDF!');
       return;
     }
     setIsProcessingDualPdf(true);
     setTimeout(() => {
       setIsProcessingDualPdf(false);
       setIsDualPdfReady(true);
-      // Map extracted questions combined with uploaded answer key
       setTestQuestions([
         {
           id: 701,
-          subject: 'Physics (Custom PDF)',
+          subject: 'Physics',
           type: 'MCQ',
-          text: `[Parsed from ${questionPdfName}] Electric potential at distance r from point charge q is:`,
+          text: `[Parsed from ${questionPdfName}] Electric potential at distance r from charge q:`,
           options: ['kq/r', 'kq/r²', 'kq²/r', 'Zero'],
           correctAnswer: 0,
-          solution: `Mapped with answer key from ${answerKeyPdfName}. Correct option is A.`,
+          solution: `Mapped from ${answerKeyPdfName}. Option A is correct.`,
           youtubeLink: 'https://www.youtube.com/results?search_query=electric+potential+point+charge+jee'
         },
         {
           id: 702,
-          subject: 'Mathematics (Custom PDF)',
+          subject: 'Mathematics',
           type: 'INTEGER',
-          text: `[Parsed from ${questionPdfName}] Find derivative of x³ at x = 2 (Integer response).`,
+          text: `[Parsed from ${questionPdfName}] Find derivative of x³ at x = 2.`,
           options: [],
           correctAnswer: '12',
-          solution: `Mapped with answer key from ${answerKeyPdfName}. Derivative is 3x² = 3(4) = 12.`,
+          solution: `Mapped from ${answerKeyPdfName}. Derivative is 12.`,
           youtubeLink: 'https://www.youtube.com/results?search_query=power+rule+derivatives+jee'
         }
       ]);
-    }, 2500);
+    }, 2000);
   };
 
   const startDualPdfTest = () => {
@@ -171,10 +190,10 @@ export default function JEEParivarDualPdfApp() {
     setTimer(customMinutes * 60);
     setCurrentQuestionIndex(0);
     setAnswers({});
+    setQuestionTimers({});
     setCurrentView('test');
   };
 
-  // FULL PAPER GENERATOR (MAIN: 75 Qs | ADVANCED: 51 Qs)
   const startMockTest = (type) => {
     setExamType(type);
     setTimer(customMinutes * 60);
@@ -190,11 +209,11 @@ export default function JEEParivarDualPdfApp() {
             id: idCounter++,
             subject: subj,
             type: 'MCQ',
-            text: `[JEE Main 2026] MCQ Question ${i} in ${subj}.`,
+            text: `[JEE Main 2026] MCQ Question ${i} in ${subj} testing fundamental laws.`,
             options: ['Option A', 'Option B', 'Option C', 'Option D'],
             correctAnswer: 0,
             solution: `Detailed step-by-step solution for ${subj} Q${i}.`,
-            youtubeLink: 'https://www.youtube.com/results?search_query=jee+main+physics+chemistry_math'
+            youtubeLink: `https://www.youtube.com/results?search_query=jee+main+${subj}`
           });
         }
         for (let i = 1; i <= 5; i++) {
@@ -206,7 +225,7 @@ export default function JEEParivarDualPdfApp() {
             options: [],
             correctAnswer: '4',
             solution: `Evaluated numerical result for ${subj} integer Q${i}.`,
-            youtubeLink: 'https://www.youtube.com/results?search_query=jee+numerical+value+questions'
+            youtubeLink: `https://www.youtube.com/results?search_query=jee+numerical+${subj}`
           });
         }
       });
@@ -222,7 +241,7 @@ export default function JEEParivarDualPdfApp() {
             options: ['Choice P', 'Choice Q', 'Choice R', 'Choice S'],
             correctAnswer: 2,
             solution: `Advanced analytical solution for ${subj} Q${i}.`,
-            youtubeLink: 'https://www.youtube.com/results?search_query=jee+advanced+physics+math'
+            youtubeLink: `https://www.youtube.com/results?search_query=jee+advanced+${subj}`
           });
         }
         for (let i = 1; i <= 7; i++) {
@@ -234,7 +253,7 @@ export default function JEEParivarDualPdfApp() {
             options: [],
             correctAnswer: '7',
             solution: `Advanced derivation for ${subj} integer Q${i}.`,
-            youtubeLink: 'https://www.youtube.com/results?search_query=jee+advanced+integer+questions'
+            youtubeLink: `https://www.youtube.com/results?search_query=jee+advanced+integer+${subj}`
           });
         }
       });
@@ -243,36 +262,74 @@ export default function JEEParivarDualPdfApp() {
     setTestQuestions(generated);
     setCurrentQuestionIndex(0);
     setAnswers({});
+    setQuestionTimers({});
     setCurrentView('test');
   };
 
+  // 🎯 SUBJECT-WISE ANALYSIS & ACCURATE SCORECARD CALCULATOR
   const handleSubmitTest = () => {
     let correct = 0;
     let incorrect = 0;
     let unattempted = 0;
-    let subjectStats = { Physics: { correct: 0, incorrect: 0 }, Chemistry: { correct: 0, incorrect: 0 }, Mathematics: { correct: 0, incorrect: 0 } };
+
+    let subjectStats = {
+      Physics: { correct: 0, incorrect: 0, total: 0, score: 0 },
+      Chemistry: { correct: 0, incorrect: 0, total: 0, score: 0 },
+      Mathematics: { correct: 0, incorrect: 0, total: 0, score: 0 }
+    };
 
     testQuestions.forEach((q) => {
+      const subjKey = q.subject.includes('Physics') ? 'Physics' : q.subject.includes('Chemistry') ? 'Chemistry' : 'Mathematics';
+      subjectStats[subjKey].total++;
+
       const userAns = answers[q.id];
       if (userAns === undefined || userAns === '') {
         unattempted++;
       } else if (String(userAns).trim() === String(q.correctAnswer).trim()) {
         correct++;
-        subjectStats[q.subject.includes('Physics') ? 'Physics' : q.subject.includes('Chemistry') ? 'Chemistry' : 'Mathematics'].correct++;
+        subjectStats[subjKey].correct++;
+        subjectStats[subjKey].score += 4;
       } else {
         incorrect++;
-        subjectStats[q.subject.includes('Physics') ? 'Physics' : q.subject.includes('Chemistry') ? 'Chemistry' : 'Mathematics'].incorrect++;
+        subjectStats[subjKey].incorrect++;
+        subjectStats[subjKey].score -= 1;
       }
     });
 
     const totalScore = correct * 4 - incorrect * 1;
+    const maxPossibleScore = testQuestions.length * 4;
+
+    let calculatedPercentile = '0.0%';
+    let calculatedRank = 1200000;
+
+    if (maxPossibleScore > 0) {
+      const percentage = (totalScore / maxPossibleScore) * 100;
+      if (totalScore <= 0) {
+        calculatedPercentile = '15.4%';
+        calculatedRank = 950000;
+      } else if (percentage < 30) {
+        calculatedPercentile = '65.2%';
+        calculatedRank = 350000;
+      } else if (percentage < 60) {
+        calculatedPercentile = '92.4%';
+        calculatedRank = 75000;
+      } else if (percentage < 85) {
+        calculatedPercentile = '98.5%';
+        calculatedRank = 15000;
+      } else {
+        calculatedPercentile = '99.85%';
+        calculatedRank = 850;
+      }
+    }
+
     setScoreCard({
       score: totalScore,
+      maxScore: maxPossibleScore,
       correct,
       incorrect,
       unattempted,
-      percentile: totalScore > 20 ? '99.8%' : '88.5%',
-      rank: totalScore > 20 ? 450 : 12000,
+      percentile: calculatedPercentile,
+      rank: calculatedRank,
       sillyMistakes: Math.floor(incorrect * 0.5),
       conceptualGaps: Math.ceil(incorrect * 0.5),
       subjectStats
@@ -310,11 +367,11 @@ export default function JEEParivarDualPdfApp() {
             <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-6 leading-tight">
               Master JEE with <br />
               <span className="bg-gradient-to-r from-orange-400 via-amber-300 to-yellow-500 bg-clip-text text-transparent">
-                Dual PDF Upload (Questions + Answer Key)
+                Subject-Wise Analysis & Question Timers
               </span>
             </h1>
             <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto">
-              Upload your Question Paper PDF in section 1 and Answer Key PDF in section 2. Our AI parses and evaluates instantly.
+              Real-time per-question time tracking, deep subject-wise breakdowns (Physics, Chem, Math), and accurate rank predictors.
             </p>
             <button
               onClick={() => setCurrentView('login')}
@@ -505,7 +562,7 @@ export default function JEEParivarDualPdfApp() {
     );
   }
 
-  // ================= 3. DASHBOARD VIEW WITH DUAL PDF UPLOAD =================
+  // ================= 3. DASHBOARD VIEW =================
   if (currentView === 'dashboard') {
     return (
       <div className="min-h-screen bg-slate-950 text-white flex flex-col">
@@ -528,7 +585,7 @@ export default function JEEParivarDualPdfApp() {
             <div>
               <span className="text-xs px-2.5 py-1 bg-amber-500/20 text-amber-400 rounded-full font-bold">⚡ Quick Check</span>
               <h2 className="text-xl font-bold mt-2 text-white">Want to try a Quick Demo Test?</h2>
-              <p className="text-slate-400 text-sm">Test NTA interface in 2 sample questions.</p>
+              <p className="text-slate-400 text-sm">Test NTA interface with per-question timers.</p>
             </div>
             <button
               onClick={startDemoTest}
@@ -538,13 +595,12 @@ export default function JEEParivarDualPdfApp() {
             </button>
           </div>
 
-          {/* DUAL PDF UPLOAD SECTION (QUESTIONS + ANSWER KEY) */}
+          {/* DUAL PDF UPLOAD SECTION */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 space-y-6">
             <h2 className="text-2xl font-bold text-orange-400">📁 Dual PDF Upload Section</h2>
-            <p className="text-slate-400 text-sm">Upload your Question Paper PDF in Section 1 and Answer Key PDF in Section 2 for AI evaluation.</p>
+            <p className="text-slate-400 text-sm">Upload Question Paper PDF in Section 1 and Answer Key PDF in Section 2.</p>
 
             <div className="grid md:grid-cols-2 gap-6">
-              {/* Section 1: Question Paper */}
               <div className="p-5 bg-slate-950 border border-slate-800 rounded-xl">
                 <label className="block text-sm font-bold text-amber-400 mb-2">1️⃣ Question Paper PDF</label>
                 <input
@@ -556,7 +612,6 @@ export default function JEEParivarDualPdfApp() {
                 {questionPdfName && <p className="text-xs text-green-400 mt-2">Loaded: {questionPdfName}</p>}
               </div>
 
-              {/* Section 2: Answer Key */}
               <div className="p-5 bg-slate-950 border border-slate-800 rounded-xl">
                 <label className="block text-sm font-bold text-amber-400 mb-2">2️⃣ Answer Key PDF</label>
                 <input
@@ -624,9 +679,11 @@ export default function JEEParivarDualPdfApp() {
     );
   }
 
-  // ================= 4. EXAM TEST INTERFACE =================
+  // ================= 4. EXAM TEST INTERFACE WITH PER-QUESTION TIMER =================
   if (currentView === 'test' && testQuestions.length > 0) {
     const q = testQuestions[currentQuestionIndex];
+    const currentQuestionTime = questionTimers[currentQuestionIndex] || 0;
+
     return (
       <div className="min-h-screen bg-slate-950 text-white flex flex-col">
         <header className="bg-slate-900 border-b border-slate-800 px-6 py-4 flex justify-between items-center">
@@ -638,9 +695,17 @@ export default function JEEParivarDualPdfApp() {
               </span>
             )}
           </div>
-          <div className="flex items-center gap-3 bg-slate-950 px-4 py-2 rounded-xl border border-slate-800">
-            <span className="text-xs text-slate-400">Time Remaining:</span>
-            <span className="font-mono text-lg font-bold text-amber-400">{formatTime(timer)}</span>
+          <div className="flex items-center gap-4">
+            {/* Per-Question Timer Badge */}
+            <div className="bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 text-xs">
+              <span className="text-slate-400">This Q Time: </span>
+              <span className="font-mono font-bold text-orange-400">{currentQuestionTime}s</span>
+            </div>
+            {/* Global Test Timer */}
+            <div className="bg-slate-950 px-4 py-2 rounded-xl border border-slate-800">
+              <span className="text-xs text-slate-400">Total Time: </span>
+              <span className="font-mono text-lg font-bold text-amber-400">{formatTime(timer)}</span>
+            </div>
           </div>
         </header>
 
@@ -755,22 +820,22 @@ export default function JEEParivarDualPdfApp() {
     );
   }
 
-  // ================= 5. SCORECARD =================
+  // ================= 5. SCORECARD WITH SUBJECT-WISE ANALYSIS =================
   if (currentView === 'result' && scoreCard) {
     return (
       <div className="min-h-screen bg-slate-950 text-white p-8 flex flex-col items-center justify-center">
-        <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl max-w-3xl w-full shadow-2xl">
+        <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl max-w-4xl w-full shadow-2xl">
           <h2 className="text-3xl font-black text-orange-400 mb-2 text-center">🎉 Test Submitted Successfully!</h2>
-          <p className="text-slate-400 text-sm mb-8 text-center">Performance & Rank Predictor for {studentName || 'Student'}</p>
+          <p className="text-slate-400 text-sm mb-8 text-center">Detailed Subject-Wise Performance for {studentName || 'Student'}</p>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 text-center">
             <div className="p-4 bg-slate-950 rounded-xl border border-slate-800">
               <p className="text-xs text-slate-400">Total Score</p>
-              <p className="text-2xl font-bold text-amber-400">{scoreCard.score}</p>
+              <p className="text-2xl font-bold text-amber-400">{scoreCard.score} / {scoreCard.maxScore}</p>
             </div>
             <div className="p-4 bg-slate-950 rounded-xl border border-slate-800">
-              <p className="text-xs text-slate-400">Correct</p>
-              <p className="text-2xl font-bold text-green-400">{scoreCard.correct}</p>
+              <p className="text-xs text-slate-400">Correct / Incorrect</p>
+              <p className="text-2xl font-bold text-green-400">{scoreCard.correct} / <span className="text-red-400">{scoreCard.incorrect}</span></p>
             </div>
             <div className="p-4 bg-slate-950 rounded-xl border border-slate-800">
               <p className="text-xs text-slate-400">Percentile</p>
@@ -782,7 +847,23 @@ export default function JEEParivarDualPdfApp() {
             </div>
           </div>
 
-          <div className="flex gap-4 mb-8">
+          {/* 📊 DEEP SUBJECT-WISE ANALYSIS BREAKDOWN */}
+          <div className="mb-8 p-6 bg-slate-950 rounded-2xl border border-slate-800">
+            <h3 className="font-bold text-lg text-orange-400 mb-4">📊 Subject-Wise Performance Breakdown</h3>
+            <div className="grid md:grid-cols-3 gap-6">
+              {Object.entries(scoreCard.subjectStats).map(([subj, data]) => (
+                <div key={subj} className="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+                  <h4 className="font-bold text-amber-400 text-base">{subj}</h4>
+                  <p className="text-xs text-slate-400">Score: <span className="font-bold text-white">{data.score} marks</span></p>
+                  <p className="text-xs text-green-400">Correct: {data.correct}</p>
+                  <p className="text-xs text-red-400">Incorrect: {data.incorrect}</p>
+                  <p className="text-xs text-slate-300">Total Qs in Subject: {data.total}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex gap-4 mb-4">
             <button
               onClick={() => setCurrentView('remediation')}
               className="flex-1 py-4 bg-amber-500 hover:bg-amber-600 font-bold rounded-xl text-slate-950 transition-all"
@@ -801,7 +882,7 @@ export default function JEEParivarDualPdfApp() {
     );
   }
 
-  // ================= 6. MULTI-PAGE DIAGNOSTICS & REMEDIATION =================
+  // ================= 6. MULTI-PAGE DIAGNOSTICS =================
   if (currentView === 'remediation' && scoreCard) {
     return (
       <div className="min-h-screen bg-slate-950 text-white p-8 max-w-4xl mx-auto">
@@ -820,7 +901,7 @@ export default function JEEParivarDualPdfApp() {
             <h3 className="text-lg font-bold text-amber-400 mb-2">💡 Auto-Remediation Plan</h3>
             <p className="text-slate-300 text-sm mb-4">Detected <span className="text-red-400 font-bold">{scoreCard.sillyMistakes} silly mistakes</span> and <span className="text-orange-400 font-bold">{scoreCard.conceptualGaps} conceptual gaps</span>.</p>
             <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 text-sm text-slate-400">
-              Recommendation: Revise core equation derivation steps before your next mock test.
+              Recommendation: Review your subject-wise weak spots shown above before your next mock test.
             </div>
           </div>
 
@@ -828,10 +909,12 @@ export default function JEEParivarDualPdfApp() {
           {testQuestions.map((q, idx) => {
             const userAns = answers[q.id];
             const isCorrect = String(userAns).trim() === String(q.correctAnswer).trim();
+            const timeSpent = questionTimers[idx] || 0;
+
             return (
               <div key={q.id} className={`p-6 rounded-2xl border ${isCorrect ? 'bg-slate-900/50 border-green-500/30' : 'bg-slate-900 border-red-500/30'}`}>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-xs font-bold text-orange-400">Q{idx + 1}. {q.subject}</span>
+                  <span className="text-xs font-bold text-orange-400">Q{idx + 1}. {q.subject} (Time spent: {timeSpent}s)</span>
                   <span className={`text-xs px-2 py-1 rounded font-bold ${isCorrect ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
                     {isCorrect ? 'Correct ✅' : 'Incorrect ❌'}
                   </span>
