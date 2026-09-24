@@ -15,7 +15,7 @@ export default function JEEParivarUltimateApp() {
   const [isOtpSent, setIsOtpSent] = useState(false);
   
   // Exam Mode & Configuration States
-  const [examType, setExamType] = useState<'MAIN' | 'ADVANCED'>('MAIN');
+  const [examType, setExamType] = useState<'MAIN' | 'ADVANCED' | 'DEMO'>('MAIN');
   const [customMinutes, setCustomMinutes] = useState(180);
   const [timer, setTimer] = useState(10800);
   
@@ -42,10 +42,10 @@ export default function JEEParivarUltimateApp() {
   // ANTI-CHEAT & SECURITY SYSTEM
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.hidden && currentView === 'test') {
+      if (document.hidden && currentView === 'test' && examType !== 'DEMO') {
         setWarningCount((prev) => {
           const newCount = prev + 1;
-          alert(`⚠️ SECURITY WARNING (${newCount}/3): Tab switching or leaving the test screen is strictly prohibited! Test auto-submits on 3 warnings.`);
+          alert(`⚠️ SECURITY WARNING (${newCount}/3): Tab switching is restricted! Test auto-submits on 3 warnings.`);
           if (newCount >= 3) {
             handleSubmitTest();
           }
@@ -61,7 +61,7 @@ export default function JEEParivarUltimateApp() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       document.removeEventListener('contextmenu', handleContextMenu);
     };
-  }, [currentView]);
+  }, [currentView, examType]);
 
   // TIMER EFFECT
   useEffect(() => {
@@ -96,6 +96,47 @@ export default function JEEParivarUltimateApp() {
     }
   };
 
+  // DEMO TEST GENERATOR (QUICK 3 QUESTIONS)
+  const startDemoTest = () => {
+    setExamType('DEMO');
+    setTimer(300); // 5 Minutes demo timer
+    setTestQuestions([
+      {
+        id: 991,
+        subject: 'Physics',
+        type: 'MCQ',
+        text: '[Demo Test] A particle moves in a straight line with deceleration proportional to displacement. Its loss of kinetic energy is proportional to:',
+        options: ['x', 'x²', 'log(x)', 'e^x'],
+        correctAnswer: 1,
+        solution: 'Using work-energy theorem: F = -kx => W = ΔKE => KE loss is proportional to x².',
+        youtubeLink: 'https://www.youtube.com/results?search_query=work+energy+theorem+jee+physics'
+      },
+      {
+        id: 992,
+        subject: 'Chemistry',
+        type: 'MCQ',
+        text: '[Demo Test] Which of the following coordination compounds exhibits optical isomerism?',
+        options: ['[Co(en)3]³⁺', '[Co(NH3)6]³⁺', '[Ni(CN)4]²⁻', '[PtCl4]²⁻'],
+        correctAnswer: 0,
+        solution: '[Co(en)3]³⁺ contains three symmetrical bidentate ligands and lacks a plane of symmetry.',
+        youtubeLink: 'https://www.youtube.com/results?search_query=coordination+compounds+optical+isomerism+jee'
+      },
+      {
+        id: 993,
+        subject: 'Mathematics',
+        type: 'INTEGER',
+        text: '[Demo Test] Find the value of x if x + 5 = 9 (Integer response test).',
+        options: [],
+        correctAnswer: '4',
+        solution: 'Simple linear equation: x = 9 - 5 = 4.',
+        youtubeLink: 'https://www.youtube.com/results?search_query=linear+equations+jee'
+      }
+    ]);
+    setCurrentQuestionIndex(0);
+    setAnswers({});
+    setCurrentView('test');
+  };
+
   // GENERATE FULL PAPER (MAIN: 75 Qs | ADVANCED: 51 Qs)
   const startMockTest = (type) => {
     setExamType(type);
@@ -107,7 +148,6 @@ export default function JEEParivarUltimateApp() {
     if (type === 'MAIN') {
       let idCounter = 1;
       subjects.forEach((subj) => {
-        // 20 MCQs per subject
         for (let i = 1; i <= 20; i++) {
           generated.push({
             id: idCounter++,
@@ -120,7 +160,6 @@ export default function JEEParivarUltimateApp() {
             youtubeLink: 'https://www.youtube.com/results?search_query=jee+main+physics+chemistry_math'
           });
         }
-        // 5 Integer questions per subject
         for (let i = 1; i <= 5; i++) {
           generated.push({
             id: idCounter++,
@@ -137,7 +176,6 @@ export default function JEEParivarUltimateApp() {
     } else {
       let idCounter = 1;
       subjects.forEach((subj) => {
-        // 10 MCQs per subject
         for (let i = 1; i <= 10; i++) {
           generated.push({
             id: idCounter++,
@@ -150,7 +188,6 @@ export default function JEEParivarUltimateApp() {
             youtubeLink: 'https://www.youtube.com/results?search_query=jee+advanced+physics+math'
           });
         }
-        // 7 Integer questions per subject
         for (let i = 1; i <= 7; i++) {
           generated.push({
             id: idCounter++,
@@ -172,7 +209,6 @@ export default function JEEParivarUltimateApp() {
     setCurrentView('test');
   };
 
-  // AI PDF READER & AUTO-DETECTOR
   const handleAIPdfUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -215,8 +251,8 @@ export default function JEEParivarUltimateApp() {
       correct,
       incorrect,
       unattempted,
-      percentile: totalScore > 100 ? '99.8%' : totalScore > 50 ? '94.2%' : '82.0%',
-      rank: totalScore > 100 ? 450 : totalScore > 50 ? 8900 : 25000,
+      percentile: totalScore > 10 ? '99.8%' : '85.0%',
+      rank: totalScore > 10 ? 450 : 15000,
       sillyMistakes: Math.floor(incorrect * 0.5),
       conceptualGaps: Math.ceil(incorrect * 0.5),
       subjectStats
@@ -254,11 +290,11 @@ export default function JEEParivarUltimateApp() {
             <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-6 leading-tight">
               Master JEE Main & Advanced with <br />
               <span className="bg-gradient-to-r from-orange-400 via-amber-300 to-yellow-500 bg-clip-text text-transparent">
-                Exact NTA Exam Engine & AI Reader
+                Exact NTA Exam Engine & Demo Test
               </span>
             </h1>
             <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto">
-              Featuring 75 Qs JEE Main & 51 Qs JEE Advanced patterns, Virtual Integer Keypads, AI PDF auto-detectors, and Answer Key parsing.
+              Try a quick demo test, or take full 75 Qs Main & 51 Qs Advanced papers with AI readers and virtual keypads.
             </p>
             <button
               onClick={() => setCurrentView('login')}
@@ -449,7 +485,7 @@ export default function JEEParivarUltimateApp() {
     );
   }
 
-  // ================= 3. DASHBOARD VIEW =================
+  // ================= 3. DASHBOARD VIEW (WITH DEMO TEST BUTTON) =================
   if (currentView === 'dashboard') {
     return (
       <div className="min-h-screen bg-slate-950 text-white flex flex-col">
@@ -467,8 +503,23 @@ export default function JEEParivarUltimateApp() {
         </header>
 
         <main className="flex-1 p-8 max-w-4xl mx-auto w-full space-y-8">
+          {/* QUICK DEMO TEST BANNER */}
+          <div className="bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-slate-900 border border-amber-500/40 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+              <span className="text-xs px-2.5 py-1 bg-amber-500/20 text-amber-400 rounded-full font-bold">⚡ Quick Check</span>
+              <h2 className="text-xl font-bold mt-2 text-white">Want to try a Quick Demo Test?</h2>
+              <p className="text-slate-400 text-sm">Test the NTA interface, virtual keypad, and analytics in just 3 sample questions.</p>
+            </div>
+            <button
+              onClick={startDemoTest}
+              className="px-6 py-3.5 bg-amber-500 hover:bg-amber-600 font-black text-slate-950 rounded-xl shadow-lg transition-all transform hover:scale-105 whitespace-nowrap"
+            >
+              Start Demo Test (3 Qs) 🚀
+            </button>
+          </div>
+
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8">
-            <h2 className="text-2xl font-bold mb-4 text-orange-400">⚙️ Configure Mock Test & Timer</h2>
+            <h2 className="text-2xl font-bold mb-4 text-orange-400">⚙️ Full Mock Test & Timer Configuration</h2>
             <div className="grid md:grid-cols-2 gap-6 mb-6">
               <div>
                 <label className="text-xs text-slate-400 block mb-2">Customize Test Duration (Minutes):</label>
@@ -484,13 +535,13 @@ export default function JEEParivarUltimateApp() {
                   onClick={() => startMockTest('MAIN')}
                   className="flex-1 py-3.5 bg-orange-500 hover:bg-orange-600 font-bold rounded-xl shadow-lg transition-all"
                 >
-                  Start JEE Main (75 Qs) 🚀
+                  JEE Main (75 Qs) 🚀
                 </button>
                 <button
                   onClick={() => startMockTest('ADVANCED')}
                   className="flex-1 py-3.5 bg-purple-600 hover:bg-purple-700 font-bold rounded-xl shadow-lg transition-all"
                 >
-                  Start JEE Adv (51 Qs) ⚡
+                  JEE Adv (51 Qs) ⚡
                 </button>
               </div>
             </div>
@@ -526,9 +577,11 @@ export default function JEEParivarUltimateApp() {
         <header className="bg-slate-900 border-b border-slate-800 px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-4">
             <span className="font-bold text-orange-400">JEE Parivar NTA Engine ({examType})</span>
-            <span className="text-xs bg-red-500/20 text-red-400 px-3 py-1 rounded-full border border-red-500/30">
-              Anti-Cheat Active (Warnings: {warningCount}/3)
-            </span>
+            {examType !== 'DEMO' && (
+              <span className="text-xs bg-red-500/20 text-red-400 px-3 py-1 rounded-full border border-red-500/30">
+                Anti-Cheat Active (Warnings: {warningCount}/3)
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-3 bg-slate-950 px-4 py-2 rounded-xl border border-slate-800">
             <span className="text-xs text-slate-400">Time Remaining:</span>
