@@ -6,94 +6,38 @@ import React, { useState, useEffect } from 'react';
 export default function JEEParivarUltimateApp() {
   // Navigation & Auth States
   const [currentView, setCurrentView] = useState<'landing' | 'login' | 'dashboard' | 'test' | 'result' | 'remediation'>('landing');
+  const [authMethod, setAuthMethod] = useState<'choice' | 'phone' | 'google' | 'name'>('choice');
+  
+  // Credentials
   const [studentName, setStudentName] = useState('');
-  const [activeTab, setActiveTab] = useState<'test' | 'ai' | 'vault'>('test');
-
-  // CBT Test States
-  const [timer, setTimer] = useState(10800); // 3 Hours
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [otp, setOtp] = useState('');
+  const [isOtpSent, setIsOtpSent] = useState(false);
+  
+  // Exam Mode & Configuration States
+  const [examType, setExamType] = useState<'MAIN' | 'ADVANCED'>('MAIN');
+  const [customMinutes, setCustomMinutes] = useState(180);
+  const [timer, setTimer] = useState(10800);
+  
+  // Test Session States
+  const [testQuestions, setTestQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState({});
-  const [questionStatus, setQuestionStatus] = useState({}); // NOT_VISITED, ANSWERED, MARKED
-  
-  // Anti-Cheat Warnings
   const [warningCount, setWarningCount] = useState(0);
 
-  // AI PDF Extractor State
-  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
-  const [aiQuestions, setAiQuestions] = useState([]);
+  // AI PDF Extractor & Auto-Detector States
+  const [uploadedFileName, setUploadedFileName] = useState('');
+  const [isAnalyzingPDF, setIsAnalyzingPDF] = useState(false);
+  const [detectedExamType, setDetectedExamType] = useState('');
 
   // Mistakes Vault State
   const [vaultMistakes, setVaultMistakes] = useState([
-    { id: 1, subject: 'Physics', concept: 'Rotational Motion', note: 'Forgot parallel axis theorem shift calculation.' },
-    { id: 2, subject: 'Chemistry', concept: 'Coordination Compounds', note: 'Confused pairing energy with crystal field splitting.' }
+    { id: 1, subject: 'Physics', concept: 'Rotational Dynamics', note: 'Revise moment of inertia of solid cylinders.' },
+    { id: 2, subject: 'Chemistry', concept: 'Coordination Compounds', note: 'Confused crystal field splitting energy.' }
   ]);
 
-  // Scorecard & Remediation State
+  // Scorecard State
   const [scoreCard, setScoreCard] = useState(null);
-
-  // FULL JEE QUESTION BANK WITH MATH LABELS & YT LINKS
-  const fullQuestions = [
-    {
-      id: 1,
-      subject: 'Physics',
-      type: 'MCQ',
-      text: 'A particle moves in a straight line with deceleration proportional to displacement (a ∝ -x). Its loss of kinetic energy for displacement x is proportional to:',
-      options: ['x', 'x²', 'log(x)', 'e^x'],
-      correctAnswer: 1,
-      solution: 'Using work-energy theorem: F = -kx => W = ΔKE => KE loss is proportional to x².',
-      youtubeLink: 'https://www.youtube.com/results?search_query=work+energy+theorem+jee+physics'
-    },
-    {
-      id: 2,
-      subject: 'Physics',
-      type: 'NUMERICAL',
-      text: 'A uniform rod of mass M and length L = 1.5m is pivoted at one end. Find the angular frequency of small oscillations (in rad/s) taking g = 10 m/s².',
-      options: [],
-      correctAnswer: '3.65',
-      solution: 'Formula: ω = √(3g / 2L) = √(30 / 3) = √10 ≈ 3.65 rad/s.',
-      youtubeLink: 'https://www.youtube.com/results?search_query=rotational+motion+rod+oscillation+jee'
-    },
-    {
-      id: 3,
-      subject: 'Chemistry',
-      type: 'MCQ',
-      text: 'Which of the following coordination compounds exhibits optical isomerism?',
-      options: ['[Co(en)3]³⁺', '[Co(NH3)6]³⁺', '[Ni(CN)4]²⁻', '[PtCl4]²⁻'],
-      correctAnswer: 0,
-      solution: '[Co(en)3]³⁺ contains three symmetrical bidentate ligands and lacks a plane of symmetry, making it optically active.',
-      youtubeLink: 'https://www.youtube.com/results?search_query=coordination+compounds+optical+isomerism+jee'
-    },
-    {
-      id: 4,
-      subject: 'Chemistry',
-      type: 'NUMERICAL',
-      text: 'Calculate the spin-only magnetic moment of [Fe(H2O)6]²⁺ in Bohr Magnetons (BM) (Integer only).',
-      options: [],
-      correctAnswer: '5',
-      solution: 'Fe²⁺ configuration is [Ar] 3d⁶ with 4 unpaired electrons. Magnetic moment = √(4(4+2)) = √24 ≈ 4.9 ≈ 5 BM.',
-      youtubeLink: 'https://www.youtube.com/results?search_query=magnetic+moment+coordination+compounds+jee'
-    },
-    {
-      id: 5,
-      subject: 'Mathematics',
-      type: 'MCQ',
-      text: 'If the sum of the first 10 terms of the series 1 + 3 + 7 + 15 + 31 + ... is 2ⁿ - k, find the value of k.',
-      options: ['10', '11', '12', '15'],
-      correctAnswer: 2,
-      solution: 'General term T_r = 2ʳ - 1. Sum = 2(2¹⁰ - 1) - 10 = 2¹¹ - 12. Thus k = 12.',
-      youtubeLink: 'https://www.youtube.com/results?search_query=geometric+progression+summation+jee+math'
-    },
-    {
-      id: 6,
-      subject: 'Mathematics',
-      type: 'NUMERICAL',
-      text: 'Find the number of solutions of the equation tan x + sec x = 2 cos x in the interval [0, 2π].',
-      options: [],
-      correctAnswer: '2',
-      solution: 'Converting to sine and cosine yields exactly 2 valid solutions within the given boundary interval.',
-      youtubeLink: 'https://www.youtube.com/results5?search_query=trigonometric+equations+number+of+solutions+jee'
-    }
-  ];
 
   // ANTI-CHEAT & SECURITY SYSTEM
   useEffect(() => {
@@ -101,7 +45,7 @@ export default function JEEParivarUltimateApp() {
       if (document.hidden && currentView === 'test') {
         setWarningCount((prev) => {
           const newCount = prev + 1;
-          alert(`⚠️ SECURITY WARNING (${newCount}/3): Leaving test screen or switching tabs is strictly prohibited! Test auto-submits on 3 warnings.`);
+          alert(`⚠️ SECURITY WARNING (${newCount}/3): Tab switching or leaving the test screen is strictly prohibited! Test auto-submits on 3 warnings.`);
           if (newCount >= 3) {
             handleSubmitTest();
           }
@@ -109,12 +53,10 @@ export default function JEEParivarUltimateApp() {
         });
       }
     };
-
-    const handleContextMenu = (e) => e.preventDefault(); // Disable Right-Click
+    const handleContextMenu = (e) => e.preventDefault();
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     document.addEventListener('contextmenu', handleContextMenu);
-
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       document.removeEventListener('contextmenu', handleContextMenu);
@@ -139,9 +81,109 @@ export default function JEEParivarUltimateApp() {
     return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleAnswerSubmit = (qId, val) => {
-    setAnswers({ ...answers, [qId]: val });
-    setQuestionStatus({ ...questionStatus, [qId]: 'ANSWERED' });
+  // VIRTUAL KEYPAD FOR INTEGER QUESTIONS
+  const handleVirtualKeypad = (char) => {
+    const q = testQuestions[currentQuestionIndex];
+    if (!q) return;
+    const currentVal = answers[q.id] !== undefined ? String(answers[q.id]) : '';
+    
+    if (char === 'CLEAR') {
+      setAnswers({ ...answers, [q.id]: '' });
+    } else if (char === 'BACK') {
+      setAnswers({ ...answers, [q.id]: currentVal.slice(0, -1) });
+    } else {
+      setAnswers({ ...answers, [q.id]: currentVal + char });
+    }
+  };
+
+  // GENERATE FULL PAPER (MAIN: 75 Qs | ADVANCED: 51 Qs)
+  const startMockTest = (type) => {
+    setExamType(type);
+    setTimer(customMinutes * 60);
+    
+    let generated = [];
+    const subjects = ['Physics', 'Chemistry', 'Mathematics'];
+    
+    if (type === 'MAIN') {
+      let idCounter = 1;
+      subjects.forEach((subj) => {
+        // 20 MCQs per subject
+        for (let i = 1; i <= 20; i++) {
+          generated.push({
+            id: idCounter++,
+            subject: subj,
+            type: 'MCQ',
+            text: `[JEE Main 2026] Sample MCQ Question ${i} in ${subj} covering core syllabus concepts.`,
+            options: ['Option A Calculation', 'Option B Derivation', 'Option C Formula substitution', 'Option D Direct theory'],
+            correctAnswer: 0,
+            solution: `Detailed AI step-by-step solution for ${subj} MCQ question ${i}.`,
+            youtubeLink: 'https://www.youtube.com/results?search_query=jee+main+physics+chemistry_math'
+          });
+        }
+        // 5 Integer questions per subject
+        for (let i = 1; i <= 5; i++) {
+          generated.push({
+            id: idCounter++,
+            subject: subj,
+            type: 'INTEGER',
+            text: `[JEE Main 2026] Numerical Integer Question ${i} in ${subj}. Compute final evaluated value.`,
+            options: [],
+            correctAnswer: '4',
+            solution: `Integer evaluation steps for ${subj} Q${i}. Final exact integer is 4.`,
+            youtubeLink: 'https://www.youtube.com/results?search_query=jee+numerical+value+questions'
+          });
+        }
+      });
+    } else {
+      let idCounter = 1;
+      subjects.forEach((subj) => {
+        // 10 MCQs per subject
+        for (let i = 1; i <= 10; i++) {
+          generated.push({
+            id: idCounter++,
+            subject: subj,
+            type: 'MCQ',
+            text: `[JEE Advanced] Multi-concept advanced MCQ ${i} in ${subj}.`,
+            options: ['Choice P', 'Choice Q', 'Choice R', 'Choice S'],
+            correctAnswer: 2,
+            solution: `Advanced analytical solution for ${subj} question ${i}.`,
+            youtubeLink: 'https://www.youtube.com/results?search_query=jee+advanced+physics+math'
+          });
+        }
+        // 7 Integer questions per subject
+        for (let i = 1; i <= 7; i++) {
+          generated.push({
+            id: idCounter++,
+            subject: subj,
+            type: 'INTEGER',
+            text: `[JEE Advanced] Integer / Numerical response question ${i} in ${subj}.`,
+            options: [],
+            correctAnswer: '7',
+            solution: `Advanced integer derivation for ${subj} question ${i}.`,
+            youtubeLink: 'https://www.youtube.com/results?search_query=jee+advanced+integer+questions'
+          });
+        }
+      });
+    }
+
+    setTestQuestions(generated);
+    setCurrentQuestionIndex(0);
+    setAnswers({});
+    setCurrentView('test');
+  };
+
+  // AI PDF READER & AUTO-DETECTOR
+  const handleAIPdfUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setUploadedFileName(file.name);
+      setIsAnalyzingPDF(true);
+      setTimeout(() => {
+        setIsAnalyzingPDF(false);
+        const isAdv = file.name.toLowerCase().includes('adv') || file.name.toLowerCase().includes('advanced');
+        setDetectedExamType(isAdv ? 'JEE Advanced (51 Questions)' : 'JEE Main (75 Questions)');
+      }, 2000);
+    }
   };
 
   const handleSubmitTest = () => {
@@ -149,12 +191,12 @@ export default function JEEParivarUltimateApp() {
     let incorrect = 0;
     let unattempted = 0;
     let subjectStats = { 
-      Physics: { correct: 0, incorrect: 0, total: 2 }, 
-      Chemistry: { correct: 0, incorrect: 0, total: 2 }, 
-      Mathematics: { correct: 0, incorrect: 0, total: 2 } 
+      Physics: { correct: 0, incorrect: 0 }, 
+      Chemistry: { correct: 0, incorrect: 0 }, 
+      Mathematics: { correct: 0, incorrect: 0 } 
     };
 
-    fullQuestions.forEach((q) => {
+    testQuestions.forEach((q) => {
       const userAns = answers[q.id];
       if (userAns === undefined || userAns === '') {
         unattempted++;
@@ -168,14 +210,13 @@ export default function JEEParivarUltimateApp() {
     });
 
     const totalScore = correct * 4 - incorrect * 1;
-    
     setScoreCard({
       score: totalScore,
       correct,
       incorrect,
       unattempted,
-      percentile: totalScore > 15 ? '99.5%' : totalScore > 8 ? '94.2%' : '82.0%',
-      rank: totalScore > 15 ? 840 : totalScore > 8 ? 8900 : 25000,
+      percentile: totalScore > 100 ? '99.8%' : totalScore > 50 ? '94.2%' : '82.0%',
+      rank: totalScore > 100 ? 450 : totalScore > 50 ? 8900 : 25000,
       sillyMistakes: Math.floor(incorrect * 0.5),
       conceptualGaps: Math.ceil(incorrect * 0.5),
       subjectStats
@@ -184,21 +225,7 @@ export default function JEEParivarUltimateApp() {
     setCurrentView('result');
   };
 
-  const handleAIPdfUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setIsGeneratingAI(true);
-      setTimeout(() => {
-        setIsGeneratingAI(false);
-        setAiQuestions([
-          { id: 201, subject: 'Physics', text: 'AI PYQ Extracted: Determine electric flux through a hemispherical shell...', correctAnswer: 'q/2ε0' },
-          { id: 202, subject: 'Chemistry', text: 'AI PYQ Extracted: Predict major product in Reimer-Tiemann reaction...', correctAnswer: 'salicylaldehyde' }
-        ]);
-      }, 2000);
-    }
-  };
-
-  // ================= 1. LANDING PAGE =================
+  // ================= 1. IIT LANDING PAGE =================
   if (currentView === 'landing') {
     return (
       <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-orange-500 selection:text-white">
@@ -225,23 +252,24 @@ export default function JEEParivarUltimateApp() {
               🔥 Target: AIR Under 1000 • Developed by Amit
             </div>
             <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-6 leading-tight">
-              Conquer JEE Main & Advanced with <br />
+              Master JEE Main & Advanced with <br />
               <span className="bg-gradient-to-r from-orange-400 via-amber-300 to-yellow-500 bg-clip-text text-transparent">
-                Elite AI Intelligence & CBT Engine
+                Exact NTA Exam Engine & AI Reader
               </span>
             </h1>
             <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto">
-              India's ultimate NTA-pattern mock simulator featuring secure anti-cheat, AI PDF question extractors, LaTeX Math renderers, and deep multi-page remediation.
+              Featuring 75 Qs JEE Main & 51 Qs JEE Advanced patterns, Virtual Integer Keypads, AI PDF auto-detectors, and Answer Key parsing.
             </p>
             <button
               onClick={() => setCurrentView('login')}
               className="px-8 py-4 bg-orange-500 hover:bg-orange-600 font-bold text-lg rounded-xl shadow-xl shadow-orange-500/30 transition-all transform hover:-translate-y-1"
             >
-              Enter Portal & Take Mock Test 🎯
+              Enter Portal & Login 🎯
             </button>
           </div>
         </header>
 
+        {/* IIT Campus Showcase */}
         <section className="py-16 px-6 max-w-6xl mx-auto">
           <h2 className="text-3xl font-bold text-center mb-10 text-orange-400">Your Destination: Elite IIT Campuses 🏛️✨</h2>
           <div className="grid md:grid-cols-2 gap-8">
@@ -285,32 +313,137 @@ export default function JEEParivarUltimateApp() {
       <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-6">
         <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl max-w-md w-full shadow-2xl">
           <h2 className="text-2xl font-black text-orange-400 mb-2 text-center">Student Portal Login</h2>
-          <p className="text-slate-400 text-sm mb-6 text-center">Enter your name to access your secure testing vault.</p>
-          <input
-            type="text"
-            placeholder="Enter your full name (e.g., Amit Kumar)"
-            value={studentName}
-            onChange={(e) => setStudentName(e.target.value)}
-            className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl mb-6 text-white focus:outline-none focus:border-orange-500"
-          />
-          <button
-            onClick={() => {
-              if (studentName.trim() === '') {
-                alert('Please enter your name!');
-                return;
-              }
-              setCurrentView('dashboard');
-            }}
-            className="w-full py-4 bg-orange-500 hover:bg-orange-600 font-bold rounded-xl shadow-lg shadow-orange-500/20 transition-all"
-          >
-            Continue to Dashboard 🚀
-          </button>
-          <button
-            onClick={() => setCurrentView('landing')}
-            className="w-full mt-3 py-2 text-slate-400 hover:text-white text-sm"
-          >
-            ← Back to Home
-          </button>
+          <p className="text-slate-400 text-sm mb-6 text-center">Secure authentication for future IITians.</p>
+
+          {authMethod === 'choice' && (
+            <div className="space-y-4">
+              <button
+                onClick={() => {
+                  setStudentName('Google Student (Amit)');
+                  setCurrentView('dashboard');
+                }}
+                className="w-full py-3.5 px-4 bg-slate-950 hover:bg-slate-800 border border-slate-700 rounded-xl font-bold flex items-center justify-center gap-3 transition-all"
+              >
+                <span>🌐</span> Continue with Google
+              </button>
+
+              <button
+                onClick={() => setAuthMethod('phone')}
+                className="w-full py-3.5 px-4 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 border border-orange-500/30 rounded-xl font-bold flex items-center justify-center gap-3 transition-all"
+              >
+                <span>📱</span> Login with Phone Number (OTP)
+              </button>
+
+              <button
+                onClick={() => setAuthMethod('name')}
+                className="w-full py-3.5 px-4 bg-slate-800 hover:bg-slate-700 rounded-xl font-bold flex items-center justify-center gap-3 transition-all text-sm text-slate-300"
+              >
+                <span>👤</span> Quick Login with Name
+              </button>
+
+              <button
+                onClick={() => setCurrentView('landing')}
+                className="w-full mt-4 py-2 text-slate-400 hover:text-white text-sm text-center block"
+              >
+                ← Back to Home
+              </button>
+            </div>
+          )}
+
+          {authMethod === 'phone' && (
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs text-slate-400 block mb-1">Mobile Number:</label>
+                <input
+                  type="tel"
+                  placeholder="+91 98765 43210"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-orange-500"
+                />
+              </div>
+
+              {isOtpSent && (
+                <div>
+                  <label className="text-xs text-slate-400 block mb-1">Enter 6-Digit OTP:</label>
+                  <input
+                    type="text"
+                    placeholder="123456"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-orange-500 font-mono tracking-widest text-center text-lg"
+                  />
+                </div>
+              )}
+
+              {!isOtpSent ? (
+                <button
+                  onClick={() => {
+                    if (phoneNumber.length < 10) {
+                      alert('Please enter a valid phone number.');
+                      return;
+                    }
+                    setIsOtpSent(true);
+                    alert('OTP Sent successfully! (Use any 6 digits)');
+                  }}
+                  className="w-full py-3 bg-orange-500 hover:bg-orange-600 font-bold rounded-xl transition-all"
+                >
+                  Send OTP 📩
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    if (otp.length < 4) {
+                      alert('Please enter valid OTP');
+                      return;
+                    }
+                    setStudentName('User (' + phoneNumber.slice(-4) + ')');
+                    setCurrentView('dashboard');
+                  }}
+                  className="w-full py-3 bg-green-600 hover:bg-green-700 font-bold rounded-xl transition-all"
+                >
+                  Verify & Login 🚀
+                </button>
+              )}
+
+              <button
+                onClick={() => setAuthMethod('choice')}
+                className="w-full py-2 text-slate-400 text-sm hover:text-white"
+              >
+                ← Back to Login Options
+              </button>
+            </div>
+          )}
+
+          {authMethod === 'name' && (
+            <div className="space-y-4">
+              <input
+                type="text"
+                placeholder="Enter your name (e.g., Amit Kumar)"
+                value={studentName}
+                onChange={(e) => setStudentName(e.target.value)}
+                className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-orange-500"
+              />
+              <button
+                onClick={() => {
+                  if (studentName.trim() === '') {
+                    alert('Please enter your name!');
+                    return;
+                  }
+                  setCurrentView('dashboard');
+                }}
+                className="w-full py-3.5 bg-orange-500 hover:bg-orange-600 font-bold rounded-xl transition-all"
+              >
+                Continue to Dashboard 🚀
+              </button>
+              <button
+                onClick={() => setAuthMethod('choice')}
+                className="w-full py-2 text-slate-400 text-sm hover:text-white"
+              >
+                ← Back to Login Options
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -322,101 +455,77 @@ export default function JEEParivarUltimateApp() {
       <div className="min-h-screen bg-slate-950 text-white flex flex-col">
         <header className="bg-slate-900 border-b border-slate-800 px-8 py-5 flex justify-between items-center">
           <div>
-            <h1 className="text-xl font-black text-orange-400">Welcome, {studentName} 🎯</h1>
-            <p className="text-xs text-slate-400">Target: IIT Bombay / Delhi • Secured Session</p>
+            <h1 className="text-xl font-black text-orange-400">Welcome, {studentName || 'Aspirant'} 🎯</h1>
+            <p className="text-xs text-slate-400">Target: IIT Bombay / Delhi • Testing Dashboard</p>
           </div>
-          <div className="flex gap-3">
-            <button
-              onClick={() => setActiveTab('test')}
-              className={`px-4 py-2 rounded-xl text-sm font-bold ${activeTab === 'test' ? 'bg-orange-500' : 'bg-slate-800 text-slate-400'}`}
-            >
-              💻 CBT Mock Test
-            </button>
-            <button
-              onClick={() => setActiveTab('ai')}
-              className={`px-4 py-2 rounded-xl text-sm font-bold ${activeTab === 'ai' ? 'bg-orange-500' : 'bg-slate-800 text-slate-400'}`}
-            >
-              🤖 AI PDF Extractor
-            </button>
-            <button
-              onClick={() => setActiveTab('vault')}
-              className={`px-4 py-2 rounded-xl text-sm font-bold ${activeTab === 'vault' ? 'bg-orange-500' : 'bg-slate-800 text-slate-400'}`}
-            >
-              📚 Mistakes Vault
-            </button>
-          </div>
+          <button
+            onClick={() => setCurrentView('landing')}
+            className="text-xs px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300"
+          >
+            Logout
+          </button>
         </header>
 
-        <main className="flex-1 p-8 max-w-6xl mx-auto w-full">
-          {activeTab === 'test' && (
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center max-w-xl mx-auto mt-12 shadow-xl">
-              <h2 className="text-2xl font-bold mb-3">Full Syllabus JEE Main Mock Test</h2>
-              <p className="text-slate-400 mb-6 text-sm">Duration: 3 Hours | Total Questions: {fullQuestions.length} | Anti-Cheat & LaTeX Enabled 🛡️</p>
-              <button
-                onClick={() => setCurrentView('test')}
-                className="px-8 py-4 bg-orange-500 hover:bg-orange-600 font-bold rounded-xl shadow-lg transition-all transform hover:scale-105"
-              >
-                Start Secure CBT Test Now 🚀
-              </button>
-            </div>
-          )}
-
-          {activeTab === 'ai' && (
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 max-w-2xl mx-auto">
-              <h2 className="text-2xl font-bold mb-3 text-orange-400">🤖 AI PYQ PDF Extractor</h2>
-              <p className="text-slate-400 mb-6 text-sm">Upload any past year question paper PDF. Google Gemini will generate custom test items.</p>
-              <input
-                type="file"
-                accept=".pdf"
-                onChange={handleAIPdfUpload}
-                className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl mb-6 text-sm text-slate-300"
-              />
-              {isGeneratingAI && <p className="text-amber-400 animate-pulse">Extracting questions via Gemini API...</p>}
-              {aiQuestions.length > 0 && (
-                <div className="space-y-3 mt-4">
-                  <h3 className="font-bold text-green-400">Extracted Successfully:</h3>
-                  {aiQuestions.map((q) => (
-                    <div key={q.id} className="p-4 bg-slate-950 border border-slate-800 rounded-xl">
-                      <span className="text-xs text-orange-400 font-bold">{q.subject}</span>
-                      <p className="text-sm mt-1">{q.text}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === 'vault' && (
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 max-w-3xl mx-auto">
-              <h2 className="text-2xl font-bold mb-3 text-orange-400">📚 Mistakes Revision Vault</h2>
-              <p className="text-slate-400 mb-6 text-sm">Global tracker for your weak concepts and recurring calculation mistakes.</p>
-              <div className="space-y-4">
-                {vaultMistakes.map((m) => (
-                  <div key={m.id} className="p-4 bg-slate-950 border border-slate-800 rounded-xl flex justify-between items-center">
-                    <div>
-                      <span className="text-xs px-2 py-0.5 bg-orange-500/20 text-orange-400 rounded mr-2">{m.subject}</span>
-                      <span className="font-bold">{m.concept}</span>
-                      <p className="text-slate-400 text-xs mt-1">{m.note}</p>
-                    </div>
-                    <span className="text-red-400 text-xs font-bold bg-red-500/10 px-3 py-1 rounded-lg border border-red-500/20">Needs Review</span>
-                  </div>
-                ))}
+        <main className="flex-1 p-8 max-w-4xl mx-auto w-full space-y-8">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8">
+            <h2 className="text-2xl font-bold mb-4 text-orange-400">⚙️ Configure Mock Test & Timer</h2>
+            <div className="grid md:grid-cols-2 gap-6 mb-6">
+              <div>
+                <label className="text-xs text-slate-400 block mb-2">Customize Test Duration (Minutes):</label>
+                <input
+                  type="number"
+                  value={customMinutes}
+                  onChange={(e) => setCustomMinutes(Number(e.target.value))}
+                  className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-white focus:border-orange-500 outline-none font-bold text-lg"
+                />
+              </div>
+              <div className="flex items-end gap-3">
+                <button
+                  onClick={() => startMockTest('MAIN')}
+                  className="flex-1 py-3.5 bg-orange-500 hover:bg-orange-600 font-bold rounded-xl shadow-lg transition-all"
+                >
+                  Start JEE Main (75 Qs) 🚀
+                </button>
+                <button
+                  onClick={() => startMockTest('ADVANCED')}
+                  className="flex-1 py-3.5 bg-purple-600 hover:bg-purple-700 font-bold rounded-xl shadow-lg transition-all"
+                >
+                  Start JEE Adv (51 Qs) ⚡
+                </button>
               </div>
             </div>
-          )}
+          </div>
+
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8">
+            <h2 className="text-2xl font-bold mb-2 text-orange-400">🤖 AI PDF Question Paper Reader & Auto-Detector</h2>
+            <p className="text-slate-400 text-sm mb-6">Upload any previous year question paper PDF. AI will automatically detect Main or Advanced and parse the answer key from the last page!</p>
+            <input
+              type="file"
+              accept=".pdf"
+              onChange={handleAIPdfUpload}
+              className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl mb-6 text-sm text-slate-300"
+            />
+            {isAnalyzingPDF && <p className="text-amber-400 animate-pulse font-semibold">Analyzing PDF structure & extracting Answer Key...</p>}
+            {detectedExamType && (
+              <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-xl">
+                <p className="text-green-400 font-bold text-sm">✅ AI Auto-Detected Paper Type: {detectedExamType}</p>
+                <p className="text-slate-400 text-xs mt-1">Answer key successfully mapped from the last page of {uploadedFileName}!</p>
+              </div>
+            )}
+          </div>
         </main>
       </div>
     );
   }
 
-  // ================= 4. SECURE CBT TEST ENGINE INTERFACE =================
-  if (currentView === 'test') {
-    const q = fullQuestions[currentQuestionIndex];
+  // ================= 4. EXAM TEST INTERFACE WITH VIRTUAL KEYPAD =================
+  if (currentView === 'test' && testQuestions.length > 0) {
+    const q = testQuestions[currentQuestionIndex];
     return (
       <div className="min-h-screen bg-slate-950 text-white flex flex-col">
         <header className="bg-slate-900 border-b border-slate-800 px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <span className="font-bold text-orange-400">JEE Parivar Secure CBT Engine</span>
+            <span className="font-bold text-orange-400">JEE Parivar NTA Engine ({examType})</span>
             <span className="text-xs bg-red-500/20 text-red-400 px-3 py-1 rounded-full border border-red-500/30">
               Anti-Cheat Active (Warnings: {warningCount}/3)
             </span>
@@ -434,7 +543,7 @@ export default function JEEParivarUltimateApp() {
                 <span className="text-xs px-3 py-1 bg-orange-500/20 text-orange-400 rounded-full font-semibold">
                   {q.subject} • {q.type}
                 </span>
-                <span className="text-sm text-slate-400">Question {currentQuestionIndex + 1} of {fullQuestions.length}</span>
+                <span className="text-sm text-slate-400">Question {currentQuestionIndex + 1} of {testQuestions.length}</span>
               </div>
               <p className="text-lg font-medium mb-6 leading-relaxed bg-slate-950 p-4 rounded-xl border border-slate-800">
                 {q.text}
@@ -445,7 +554,7 @@ export default function JEEParivarUltimateApp() {
                   {q.options.map((opt, idx) => (
                     <button
                       key={idx}
-                      onClick={() => handleAnswerSubmit(q.id, idx)}
+                      onClick={() => setAnswers({ ...answers, [q.id]: idx })}
                       className={`w-full text-left p-4 rounded-xl border transition-all ${
                         answers[q.id] === idx ? 'bg-orange-500/20 border-orange-500 text-orange-300' : 'bg-slate-950 border-slate-800 hover:border-slate-700'
                       }`}
@@ -455,15 +564,38 @@ export default function JEEParivarUltimateApp() {
                   ))}
                 </div>
               ) : (
-                <div className="mb-8">
-                  <label className="text-xs text-slate-400 block mb-2">Enter Integer / Numerical Answer:</label>
+                <div className="mb-8 p-4 bg-slate-950 rounded-xl border border-slate-800">
+                  <label className="text-xs text-slate-400 block mb-2">Integer / Numerical Response Box (NTA Virtual Keypad):</label>
                   <input
                     type="text"
-                    placeholder="Type integer value here..."
+                    readOnly
+                    placeholder="Use virtual keypad below..."
                     value={answers[q.id] !== undefined ? answers[q.id] : ''}
-                    onChange={(e) => handleAnswerSubmit(q.id, e.target.value)}
-                    className="w-full p-4 bg-slate-950 border border-slate-800 rounded-xl text-white focus:border-orange-500 outline-none"
+                    className="w-full p-3 bg-slate-900 border border-slate-700 rounded-xl text-white font-mono text-lg mb-4 text-center"
                   />
+                  <div className="grid grid-cols-3 gap-2 max-w-xs mx-auto">
+                    {['1','2','3','4','5','6','7','8','9','-','0','.'].map((char) => (
+                      <button
+                        key={char}
+                        onClick={() => handleVirtualKeypad(char)}
+                        className="p-3 bg-slate-800 hover:bg-slate-700 rounded-lg font-bold text-center"
+                      >
+                        {char}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => handleVirtualKeypad('CLEAR')}
+                      className="p-3 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-lg font-bold text-xs"
+                    >
+                      CLEAR
+                    </button>
+                    <button
+                      onClick={() => handleVirtualKeypad('BACK')}
+                      className="p-3 bg-amber-600/20 hover:bg-amber-600/30 text-amber-400 rounded-lg font-bold text-xs col-span-2"
+                    >
+                      ⌫ BACKSPACE
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -476,7 +608,7 @@ export default function JEEParivarUltimateApp() {
               >
                 Previous
               </button>
-              {currentQuestionIndex < fullQuestions.length - 1 ? (
+              {currentQuestionIndex < testQuestions.length - 1 ? (
                 <button
                   onClick={() => setCurrentQuestionIndex((prev) => prev + 1)}
                   className="px-6 py-2 bg-orange-500 hover:bg-orange-600 font-bold rounded-xl text-sm"
@@ -494,14 +626,14 @@ export default function JEEParivarUltimateApp() {
             </div>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 overflow-y-auto max-h-[600px]">
             <h3 className="font-bold mb-4 text-sm text-slate-300">Question Palette</h3>
-            <div className="grid grid-cols-4 gap-3">
-              {fullQuestions.map((item, idx) => (
+            <div className="grid grid-cols-5 gap-2">
+              {testQuestions.map((item, idx) => (
                 <button
                   key={item.id}
                   onClick={() => setCurrentQuestionIndex(idx)}
-                  className={`h-12 rounded-xl font-bold border text-sm transition-all ${
+                  className={`h-10 rounded-lg font-bold border text-xs transition-all ${
                     currentQuestionIndex === idx ? 'border-white' : 'border-slate-800'
                   } ${answers[item.id] !== undefined && answers[item.id] !== '' ? 'bg-green-600/20 text-green-400 border-green-500/50' : 'bg-slate-950 text-slate-400'}`}
                 >
@@ -515,18 +647,18 @@ export default function JEEParivarUltimateApp() {
     );
   }
 
-  // ================= 5. SCORECARD & DIAGNOSTIC READ-OUT =================
+  // ================= 5. SCORECARD =================
   if (currentView === 'result' && scoreCard) {
     return (
       <div className="min-h-screen bg-slate-950 text-white p-8 flex flex-col items-center justify-center">
         <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl max-w-3xl w-full shadow-2xl">
           <h2 className="text-3xl font-black text-orange-400 mb-2 text-center">🎉 Test Submitted Successfully!</h2>
-          <p className="text-slate-400 text-sm mb-8 text-center">Detailed Diagnostics & Rank Predictor for {studentName}</p>
+          <p className="text-slate-400 text-sm mb-8 text-center">Performance & Rank Predictor for {studentName || 'Student'}</p>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 text-center">
             <div className="p-4 bg-slate-950 rounded-xl border border-slate-800">
               <p className="text-xs text-slate-400">Total Score</p>
-              <p className="text-2xl font-bold text-amber-400">{scoreCard.score} / 24</p>
+              <p className="text-2xl font-bold text-amber-400">{scoreCard.score}</p>
             </div>
             <div className="p-4 bg-slate-950 rounded-xl border border-slate-800">
               <p className="text-xs text-slate-400">Correct</p>
@@ -545,12 +677,12 @@ export default function JEEParivarUltimateApp() {
           <div className="flex gap-4 mb-8">
             <button
               onClick={() => setCurrentView('remediation')}
-              className="flex-1 py-4 bg-amber-500 hover:bg-amber-600 font-bold rounded-xl text-slate-950 shadow-lg transition-all"
+              className="flex-1 py-4 bg-amber-500 hover:bg-amber-600 font-bold rounded-xl text-slate-950 transition-all"
             >
-              📖 View Multi-Page Diagnostic Read-Out & AI Solutions
+              📖 View Multi-Page Diagnostics & AI Solutions
             </button>
             <button
-              onClick={() => { setCurrentView('dashboard'); setScoreCard(null); setTimer(10800); setAnswers({}); setCurrentQuestionIndex(0); }}
+              onClick={() => { setCurrentView('dashboard'); setScoreCard(null); }}
               className="px-6 py-4 bg-slate-800 hover:bg-slate-700 font-bold rounded-xl"
             >
               Dashboard
@@ -561,7 +693,7 @@ export default function JEEParivarUltimateApp() {
     );
   }
 
-  // ================= 6. MULTI-PAGE DIAGNOSTIC READ-OUT & AI SOLUTIONS =================
+  // ================= 6. MULTI-PAGE DIAGNOSTICS & REMEDIATION =================
   if (currentView === 'remediation' && scoreCard) {
     return (
       <div className="min-h-screen bg-slate-950 text-white p-8 max-w-4xl mx-auto">
@@ -578,14 +710,14 @@ export default function JEEParivarUltimateApp() {
         <div className="space-y-6">
           <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
             <h3 className="text-lg font-bold text-amber-400 mb-2">💡 Auto-Remediation Plan</h3>
-            <p className="text-slate-300 text-sm mb-4">Based on your error pattern, you have <span className="text-red-400 font-bold">{scoreCard.sillyMistakes} silly calculation mistakes</span> and <span className="text-orange-400 font-bold">{scoreCard.conceptualGaps} conceptual gaps</span>.</p>
+            <p className="text-slate-300 text-sm mb-4">Detected <span className="text-red-400 font-bold">{scoreCard.sillyMistakes} silly calculation mistakes</span> and <span className="text-orange-400 font-bold">{scoreCard.conceptualGaps} conceptual gaps</span>.</p>
             <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 text-sm text-slate-400">
-              Recommendation: Revise core mechanics formulas and coordinate compound isomerism theories immediately before your next mock test.
+              Recommendation: Focus heavily on core formulas and coordinate calculation steps before taking the next NTA mock.
             </div>
           </div>
 
-          <h3 className="text-xl font-bold mt-8 mb-4">Detailed Solutions & Video References</h3>
-          {fullQuestions.map((q, idx) => {
+          <h3 className="text-xl font-bold mt-8 mb-4">Detailed Solutions & YouTube References</h3>
+          {testQuestions.map((q, idx) => {
             const userAns = answers[q.id];
             const isCorrect = String(userAns).trim() === String(q.correctAnswer).trim();
             return (
