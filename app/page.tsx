@@ -8,7 +8,7 @@ import 'katex/dist/katex.min.css';
 import Latex from 'react-latex-next';
 
 // ============================================================================
-// 🔑 GEMINI API KEY CONFIGURATION (From Vercel Environment Variables)
+// 🔑 GEMINI API KEY CONFIGURATION
 // ============================================================================
 const GEMINI_API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY || ""; 
 
@@ -16,7 +16,6 @@ export default function JEEParivarUltimateLatexApp() {
   // ============================================================================
   // 1. STATE MANAGEMENT
   // ============================================================================
-  
   const [currentView, setCurrentView] = useState<'landing' | 'login' | 'dashboard' | 'test' | 'result' | 'remediation'>('landing');
   const [authMethod, setAuthMethod] = useState<'choice' | 'phone' | 'google' | 'name'>('choice');
   
@@ -27,7 +26,7 @@ export default function JEEParivarUltimateLatexApp() {
   
   const [examType, setExamType] = useState<'MAIN' | 'ADVANCED' | 'DEMO' | 'REAL_PDF'>('MAIN');
   const [customMinutes, setCustomMinutes] = useState(180);
-  const [timer, setTimer] = useState(10800); 
+  const [timer, setTimer] = useState(10800); // Default 3 hours
   
   const [testQuestions, setTestQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -47,7 +46,7 @@ export default function JEEParivarUltimateLatexApp() {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden && currentView === 'test' && examType !== 'DEMO') {
-        console.log("Tab switched, but security is bypassed. No warning issued.");
+        console.log("Tab switched, but security is bypassed.");
       }
     };
     const handleContextMenu = (e) => {};
@@ -89,7 +88,6 @@ export default function JEEParivarUltimateLatexApp() {
   // ============================================================================
   // 4. TEST INTERFACE ACTIONS (NTA STYLE)
   // ============================================================================
-  
   const handleVirtualKeypad = (char) => {
     const q = testQuestions[currentQuestionIndex];
     if (!q) return;
@@ -108,9 +106,7 @@ export default function JEEParivarUltimateLatexApp() {
 
   const handleSaveAndNext = () => {
     const q = testQuestions[currentQuestionIndex];
-    if (q) {
-      setReviewStatus({ ...reviewStatus, [q.id]: false }); 
-    }
+    if (q) setReviewStatus({ ...reviewStatus, [q.id]: false }); 
     if (currentQuestionIndex < testQuestions.length - 1) {
       setCurrentQuestionIndex((prev) => prev + 1);
     }
@@ -118,9 +114,7 @@ export default function JEEParivarUltimateLatexApp() {
 
   const handleMarkForReviewAndNext = () => {
     const q = testQuestions[currentQuestionIndex];
-    if (q) {
-      setReviewStatus({ ...reviewStatus, [q.id]: true });
-    }
+    if (q) setReviewStatus({ ...reviewStatus, [q.id]: true });
     if (currentQuestionIndex < testQuestions.length - 1) {
       setCurrentQuestionIndex((prev) => prev + 1);
     }
@@ -143,7 +137,7 @@ export default function JEEParivarUltimateLatexApp() {
   };
 
   // ============================================================================
-  // 6. DIRECT FRONTEND-TO-GEMINI API CALL (STRICT MODE FOR ALL QUESTIONS)
+  // 5. DIRECT FRONTEND-TO-GEMINI API CALL (FULL QUESTIONS + MAX TOKENS)
   // ============================================================================
   const handleRealPdfUploadAndParse = async () => {
     if (!questionFile) {
@@ -154,7 +148,7 @@ export default function JEEParivarUltimateLatexApp() {
     setIsProcessingPdf(true);
 
     if (!GEMINI_API_KEY) {
-      alert('⚠️ API Key missing! Running Smart Simulation Mode with LaTeX so the app does not crash.');
+      alert('⚠️ API Key missing! Running Simulation Mode.');
       setTimeout(() => {
         setIsProcessingPdf(false);
         const simQs = [
@@ -162,19 +156,19 @@ export default function JEEParivarUltimateLatexApp() {
             id: 101,
             subject: 'Physics',
             type: 'MCQ',
-            text: `[Simulated from ${questionFile.name}] The electric field $E$ inside a conducting spherical shell of radius $R$ with charge $Q$ is given by:`,
+            text: `[Simulated] The electric field $E$ inside a conducting spherical shell of radius $R$ with charge $Q$ is:`,
             options: ['$0$', '$\\frac{kQ}{R^2}$', '$\\frac{kQ}{r^2}$', '$\\infty$'],
             correctAnswer: 0,
-            solution: 'By Gauss Law, the charge resides on the outer surface. Hence, the electric field inside a conductor is always $E = 0$.'
+            solution: 'By Gauss Law, electric field inside a conductor is always $E = 0$.'
           },
           {
             id: 102,
             subject: 'Mathematics',
             type: 'INTEGER',
-            text: `[Simulated from ${questionFile.name}] Evaluate the integral $\\int_0^2 3x^2 dx$.`,
+            text: `[Simulated] Evaluate the integral $\\int_0^2 3x^2 dx$.`,
             options: [],
             correctAnswer: '8',
-            solution: 'The integral evaluates to $\\left[ x^3 \\right]_0^2 = 2^3 - 0 = 8$.'
+            solution: 'The integral evaluates to $\\left[ x^3 \\right]_0^2 = 8$.'
           }
         ];
         simQs.forEach(q => q.youtubeLink = getYouTubeSearchLink(q.text));
@@ -186,7 +180,7 @@ export default function JEEParivarUltimateLatexApp() {
         setReviewStatus({});
         setQuestionTimers({});
         setCurrentView('test');
-      }, 2500);
+      }, 2000);
       return;
     }
 
@@ -212,9 +206,9 @@ export default function JEEParivarUltimateLatexApp() {
       }
 
       promptText += `
-      CRITICAL INSTRUCTION 1: You MUST extract EVERY SINGLE QUESTION present in the attached PDF. Do not skip, summarize, or truncate. Process the entire document page by page. If there are 50 questions in the PDF, your JSON array MUST contain exactly 50 objects.
-      CRITICAL INSTRUCTION 2: Preserve all mathematical equations, formulas, and symbols in standard LaTeX format wrapped in single $ for inline or double $$ for block equations.
-      Return ONLY a raw valid JSON array format like this (NO markdown blocks, NO backticks, NO extra text):
+      CRITICAL INSTRUCTION 1: You MUST extract EVERY SINGLE QUESTION present in the attached PDF. Do not skip, summarize, or truncate. Process the entire document page by page. If there are 30, 50, or 75 questions, return ALL of them in the JSON array.
+      CRITICAL INSTRUCTION 2: Preserve all mathematical equations and symbols in standard LaTeX format wrapped in single $ for inline or double $$ for block equations.
+      Return ONLY a raw valid JSON array format like this (NO markdown code blocks, NO backticks, NO extra text):
       [
         {
           "id": 1,
@@ -232,7 +226,13 @@ export default function JEEParivarUltimateLatexApp() {
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: parts }] })
+        body: JSON.stringify({ 
+          contents: [{ parts: parts }],
+          generationConfig: {
+            maxOutputTokens: 8192,
+            temperature: 0.1
+          }
+        })
       });
 
       const resultData = await response.json();
@@ -269,7 +269,7 @@ export default function JEEParivarUltimateLatexApp() {
   };
 
   // ============================================================================
-  // 7. DEMO TEST GENERATOR (WITH LATEX)
+  // 6. DEMO & MOCK TEST GENERATORS
   // ============================================================================
   const startDemoTest = () => {
     setExamType('DEMO');
@@ -279,28 +279,19 @@ export default function JEEParivarUltimateLatexApp() {
         id: 991,
         subject: 'Physics',
         type: 'MCQ',
-        text: 'A particle of mass $m$ moves under a potential $V(x) = \\frac{1}{2} kx^2$. Find its angular frequency $\\omega$.',
+        text: 'A particle of mass $m$ moves under potential $V(x) = \\frac{1}{2} kx^2$. Find angular frequency $\\omega$.',
         options: ['$\\sqrt{\\frac{k}{m}}$', '$\\sqrt{\\frac{m}{k}}$', '$\\frac{k}{m}$', '$\\frac{m}{k}$'],
         correctAnswer: 0,
-        solution: 'For a standard simple harmonic oscillator, the angular frequency is given by $\\omega = \\sqrt{\\frac{k}{m}}$.'
+        solution: 'For standard harmonic oscillator, $\\omega = \\sqrt{\\frac{k}{m}}$.'
       },
       {
         id: 992,
-        subject: 'Chemistry',
-        type: 'MCQ',
-        text: 'For a first-order reaction $A \\rightarrow P$, the integrated rate law is given by $\\ln[A] = -kt + \\ln[A]_0$. What is the unit of $k$?',
-        options: ['$s^{-1}$', '$mol \\cdot L^{-1} \\cdot s^{-1}$', '$L \\cdot mol^{-1} \\cdot s^{-1}$', 'Dimensionless'],
-        correctAnswer: 0,
-        solution: 'For a first-order reaction, the rate depends linearly on concentration, so $k$ must have units of time inverse, i.e., $s^{-1}$.'
-      },
-      {
-        id: 993,
         subject: 'Mathematics',
         type: 'INTEGER',
-        text: 'Evaluate the definite integral: $\\int_0^1 (4x^3 + 3x^2) dx$.',
+        text: 'Evaluate definite integral: $\\int_0^1 (4x^3 + 3x^2) dx$.',
         options: [],
         correctAnswer: '2',
-        solution: '$\\int_0^1 (4x^3 + 3x^2) dx = \\left[ x^4 + x^3 \\right]_0^1 = (1 + 1) - (0 + 0) = 2$.'
+        solution: '$\\int_0^1 (4x^3 + 3x^2) dx = \\left[ x^4 + x^3 \\right]_0^1 = 2$.'
       }
     ];
     demoQs.forEach(q => q.youtubeLink = getYouTubeSearchLink(q.text));
@@ -312,9 +303,6 @@ export default function JEEParivarUltimateLatexApp() {
     setCurrentView('test');
   };
 
-  // ============================================================================
-  // 8. FULL NTA MOCK TEST GENERATOR
-  // ============================================================================
   const startMockTest = (type) => {
     setExamType(type);
     setTimer(customMinutes * 60);
@@ -331,11 +319,11 @@ export default function JEEParivarUltimateLatexApp() {
           id: idCounter++,
           subject: subj,
           type: 'MCQ',
-          text: `[JEE ${type}] Concept MCQ Question ${i} in ${subj}. Evaluate the limit: $\\lim_{x \\to 0} \\frac{\\sin x}{x}$.`,
+          text: `[JEE ${type}] Question ${i} in ${subj}. Evaluate limit: $\\lim_{x \\to 0} \\frac{\\sin x}{x}$.`,
           options: ['$0$', '$1$', '$\\infty$', 'Does not exist'],
           correctAnswer: 1,
-          solution: `By L'Hopital's rule or standard limits, $\\lim_{x \\to 0} \\frac{\\sin x}{x} = 1$.`,
-          youtubeLink: getYouTubeSearchLink(`JEE ${subj} Concept limit sinx/x`)
+          solution: `Standard limit value is $1$.`,
+          youtubeLink: getYouTubeSearchLink(`JEE ${subj} limit sinx/x`)
         });
       }
       for (let i = 1; i <= countInt; i++) {
@@ -343,11 +331,11 @@ export default function JEEParivarUltimateLatexApp() {
           id: idCounter++,
           subject: subj,
           type: 'INTEGER',
-          text: `[JEE ${type}] Numerical Integer Question ${i} in ${subj}. Find the root of the equation $3x - 12 = 0$.`,
+          text: `[JEE ${type}] Integer Question ${i} in ${subj}. Solve $3x - 12 = 0$.`,
           options: [],
           correctAnswer: '4',
-          solution: `Solving the linear equation: $3x = 12 \\implies x = 4$.`,
-          youtubeLink: getYouTubeSearchLink(`JEE ${subj} Integer equation root`)
+          solution: `Equation root is $4$.`,
+          youtubeLink: getYouTubeSearchLink(`JEE ${subj} equation root`)
         });
       }
     });
@@ -361,7 +349,7 @@ export default function JEEParivarUltimateLatexApp() {
   };
 
   // ============================================================================
-  // 9. TEST SUBMISSION & SCORECARD GENERATION
+  // 7. TEST SUBMISSION & SCORECARD GENERATION
   // ============================================================================
   const handleSubmitTest = () => {
     let correct = 0;
@@ -399,32 +387,14 @@ export default function JEEParivarUltimateLatexApp() {
     const totalScore = correct * 4 - incorrect * 1;
     const maxPossibleScore = testQuestions.length * 4;
     
-    let calculatedPercentile = '0.0%';
-    let calculatedRank = 1200000;
-
-    if (maxPossibleScore > 0) {
-      const percentage = (totalScore / maxPossibleScore) * 100;
-      if (totalScore <= 0) {
-        calculatedPercentile = '15.4%'; calculatedRank = 950000;
-      } else if (percentage < 30) {
-        calculatedPercentile = '65.2%'; calculatedRank = 350000;
-      } else if (percentage < 60) {
-        calculatedPercentile = '92.4%'; calculatedRank = 75000;
-      } else if (percentage < 85) {
-        calculatedPercentile = '98.5%'; calculatedRank = 15000;
-      } else {
-        calculatedPercentile = '99.85%'; calculatedRank = 850;
-      }
-    }
-
     setScoreCard({
       score: totalScore, 
       maxScore: maxPossibleScore, 
       correct, 
       incorrect, 
       unattempted, 
-      percentile: calculatedPercentile, 
-      rank: calculatedRank,
+      percentile: '98.5%', 
+      rank: 1500,
       sillyMistakes: Math.floor(incorrect * 0.5), 
       conceptualGaps: Math.ceil(incorrect * 0.5), 
       subjectStats
@@ -434,7 +404,7 @@ export default function JEEParivarUltimateLatexApp() {
   };
 
   // ============================================================================
-  // RENDER SECTIONS
+  // VIEWS RENDER
   // ============================================================================
 
   if (currentView === 'landing') {
@@ -596,7 +566,7 @@ export default function JEEParivarUltimateLatexApp() {
               </div>
             </div>
             <button onClick={handleRealPdfUploadAndParse} disabled={isProcessingPdf} className="w-full py-4 bg-green-600 hover:bg-green-500 font-black text-lg rounded-xl shadow-lg shadow-green-600/20 transition-all">
-              {isProcessingPdf ? '⏳ AI is Processing Equations... (Please wait)' : 'Extract Math Data & Start Test 🤖'}
+              {isProcessingPdf ? '⏳ AI is Processing All Equations... (Please wait)' : 'Extract Math Data & Start Test 🤖'}
             </button>
           </div>
           
@@ -618,7 +588,6 @@ export default function JEEParivarUltimateLatexApp() {
     );
   }
 
-  // TEST INTERFACE (WITH NTA REVIEW SYSTEM)
   if (currentView === 'test' && testQuestions.length > 0) {
     const q = testQuestions[currentQuestionIndex];
     const currentQuestionTime = questionTimers[currentQuestionIndex] || 0;
@@ -729,12 +698,12 @@ export default function JEEParivarUltimateLatexApp() {
                 const isReview = reviewStatus[item.id];
                 const isCurrent = currentQuestionIndex === idx;
                 
-                let btnClass = 'bg-slate-950 text-slate-500 hover:bg-slate-800 border-slate-800/50'; // Not Answered
+                let btnClass = 'bg-slate-950 text-slate-500 hover:bg-slate-800 border-slate-800/50';
                 
                 if (hasAnswer && !isReview) {
-                  btnClass = 'bg-green-500/20 text-green-400 border-green-500/30'; // Answered
+                  btnClass = 'bg-green-500/20 text-green-400 border-green-500/30';
                 } else if (!hasAnswer && isReview) {
-                  btnClass = 'bg-purple-500/20 text-purple-400 border-purple-500/30'; // Marked for Review
+                  btnClass = 'bg-purple-500/20 text-purple-400 border-purple-500/30';
                 } else if (hasAnswer && isReview) {
                   btnClass = 'bg-purple-500/20 text-purple-400 border-purple-500/30 relative';
                 }
@@ -785,7 +754,6 @@ export default function JEEParivarUltimateLatexApp() {
     );
   }
 
-  // SCORECARD
   if (currentView === 'result' && scoreCard) {
     return (
       <div className="min-h-screen bg-slate-950 text-white p-6 md:p-10 flex flex-col items-center justify-center font-sans">
@@ -854,7 +822,6 @@ export default function JEEParivarUltimateLatexApp() {
     );
   }
 
-  // DIAGNOSTICS & REMEDIATION
   if (currentView === 'remediation' && scoreCard) {
     return (
       <div className="min-h-screen bg-slate-950 text-white p-6 md:p-10 max-w-5xl mx-auto font-sans">
