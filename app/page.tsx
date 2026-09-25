@@ -5,18 +5,6 @@
  * ============================================================================
  * 🚀 JEE PARIVAR - ULTIMATE NTA EXAM ENGINE (v7.0 - MEGA BUILD)
  * ============================================================================
- * Features Included:
- * - 🏛️ IIT Dream Collage on Landing Page (Bombay, Delhi, KGP)
- * - 📂 Pure JSON Upload System (No fake converters)
- * - 📚 My Files (Persistent Test Library)
- * - 📅 Custom Micro-Goals Tracker & Backlog Matrix
- * - 🧠 NTA-style Test Engine (Subject Tabs, Palette, Clear/Review)
- * - 📊 REALISTIC NTA PERCENTILE & RANK CALCULATION
- * - ⏱️ Strict Focus Mode & Anti-Cheat System
- * - 📝 Full LaTeX Equation Support & Image Support
- * - 🗄️ MASSIVE JEE ADVANCED 2016 51-QUESTION MOCK TEST (Built-in)
- * - 🎥 Auto YouTube Solution Finder (Fixed & Working)
- * ============================================================================
  */
 
 import React, { useState, useEffect } from 'react';
@@ -43,186 +31,44 @@ const Icons = {
 };
 
 // ============================================================================
-// 📦 2. MASSIVE JEE ADVANCED 2016 PAPER (51 QUESTIONS)
+// 📦 2. BUILT-IN DEMO TEST (PASTE YOUR 51 QUESTIONS HERE TO MAKE IT 4000+ LINES)
 // ============================================================================
-// We create 20 highly detailed questions, and generate the rest to make 51 perfectly.
-const BASE_ADVANCED_TEST = [
-  // PHYSICS (JEE ADV 2016 Pattern)
+const JEE_ADV_2016_MEGA_TEST = [
   {
-    "id": 101, "subject": "Physics", "type": "MCQ",
-    "text": "A parallel beam of light is incident from air at an angle $\\alpha$ on the side PQ of a right-angled triangular prism of refractive index $n=\\sqrt{2}$. Light undergoes total internal reflection in the prism at the face PR when $\\alpha$ has a minimum value of $45^{\\circ}$. The angle $\\theta$ of the prism is:",
+    "id": 1,
+    "subject": "Physics",
+    "type": "MCQ",
+    "text": "In a historical experiment to determine Planck’s constant, a metal surface was irradiated with light of different wavelengths. The emitted photoelectron energies were measured by applying a stopping potential. The relevant data for the wavelength $(\\lambda)$ of incident light and the corresponding stopping potential $(V_0)$ are given below:\n\n$\\lambda (\\mu m)$ : $0.3$ | $0.4$ | $0.5$\n$V_0 (Volt)$ : $2.0$ | $1.0$ | $0.4$\n\nGiven that $c = 3 \\times 10^8 ms^{-1}$ and $e = 1.6 \\times 10^{-19} C$, Planck’s constant (in units of $J s$) found from such an experiment is",
     "imageUrl": "",
-    "options": ["$15^{\\circ}$", "$22.5^{\\circ}$", "$30^{\\circ}$", "$45^{\\circ}$"],
-    "correctAnswer": 0,
-    "solution": "For TIR at PR, the angle of incidence must be critical angle $\\theta_c$. $\\sin \\theta_c = 1/n = 1/\\sqrt{2} \\Rightarrow \\theta_c = 45^{\\circ}$. Applying Snell's law at PQ: $1 \\cdot \\sin(45^{\\circ}) = \\sqrt{2} \\sin r_1 \\Rightarrow \\sin r_1 = 1/2 \\Rightarrow r_1 = 30^{\\circ}$. From geometry of prism, $r_1 + \\theta_c = 90^{\\circ} - \\theta$ is not directly true. The normal at PR makes angle $\\theta$ with normal at PQ. Thus $r_1 + \\theta_c = \\theta_{prism}$. Wait, using proper prism relations: $r_2 = 45^{\\circ}$. $A = r_1 + r_2$. But here the face is PR. After solving, $\\theta = 15^{\\circ}$."
-  },
-  {
-    "id": 102, "subject": "Physics", "type": "MCQ",
-    "text": "In a historical experiment to determine Planck's constant, a metal surface was irradiated with light of different wavelengths. The emitted photoelectron energies were measured by applying a stopping potential. The relevant data for the wavelength $(\\lambda)$ and corresponding stopping potential $(V_0)$ are given. Given $c=3 \\times 10^8 m/s$ and $e=1.6 \\times 10^{-19} C$. The work function is roughly:",
-    "imageUrl": "",
-    "options": ["$1.5 eV$", "$2.0 eV$", "$2.5 eV$", "$3.0 eV$"],
+    "options": [
+      "$6.0 \\times 10^{-34}$",
+      "$6.4 \\times 10^{-34}$",
+      "$6.6 \\times 10^{-34}$",
+      "$6.8 \\times 10^{-34}$"
+    ],
     "correctAnswer": 1,
-    "solution": "Using Einstein's Photoelectric Equation: $hc/\\lambda = \\Phi + eV_0$. By plotting $V_0$ vs $1/\\lambda$, the intercept on the energy axis gives the work function $\\Phi$. Based on standard JEE Adv 2016 data, it comes out to be $2.0 eV$."
+    "solution": "$eV = [ \\frac{hc}{\\lambda} - \\phi ]$\n$e(V_1 - V_2) = \\frac{hc}{\\lambda_1} - \\frac{hc}{\\lambda_2} = hc(\\frac{1}{\\lambda_1} - \\frac{1}{\\lambda_2})$\n$h = \\frac{e(V_1 - V_2)}{c(\\frac{1}{\\lambda_1} - \\frac{1}{\\lambda_2})} = \\frac{1.6 \\times 10^{-19}(2.0 - 1.0)}{3 \\times 10^8 (\\frac{1}{0.3 \\times 10^{-6}} - \\frac{1}{0.4 \\times 10^{-6}})} = 6.4 \\times 10^{-34}$"
   },
   {
-    "id": 103, "subject": "Physics", "type": "INTEGER",
-    "text": "Two identically charged spheres are suspended by strings of equal length. The strings make an angle of $30^{\\circ}$ with each other. When suspended in a liquid of density $0.8 g/cm^3$, the angle remains the same. If density of the material of the sphere is $1.6 g/cm^3$, what is the dielectric constant of the liquid?",
-    "imageUrl": "",
-    "options": [],
-    "correctAnswer": "2",
-    "solution": "In air: $T \\sin\\theta = F_e$ and $T \\cos\\theta = mg$. So $\\tan\\theta = F_e / mg$. In liquid: $\\tan\\theta = (F_e / K) / (mg - V\\rho g)$. Since $\\theta$ is same, $F_e/mg = (F_e/K) / (mg(1 - \\rho/d))$. Thus $K = 1 / (1 - 0.8/1.6) = 1 / (1 - 0.5) = 2$."
-  },
-  {
-    "id": 104, "subject": "Physics", "type": "MCQ",
-    "text": "A uniform wooden stick of mass $1.6 kg$ and length $l$ rests in an inclined manner on a smooth, vertical wall of height $h(h < l)$ such that a small portion of the stick extends beyond the wall. The reaction force of the wall on the stick is perpendicular to the stick. The stick makes an angle of $30^{\\circ}$ with the wall and the bottom of the stick is on a rough floor. The reaction of the wall on the stick is equal in magnitude to the reaction of the floor. Find the ratio $h/l$.",
-    "imageUrl": "",
-    "options": ["$3/16$", "$3/8$", "$3\\sqrt{3}/16$", "$3\\sqrt{3}/8$"],
-    "correctAnswer": 0,
-    "solution": "Equating torques and forces. Let wall reaction be $N_1$ and floor normal be $N_2$, friction be $f$. Given $N_1 = \\sqrt{N_2^2 + f^2}$. Balancing forces: $N_1 \\sin 30^{\\circ} + N_2 = mg$ and $N_1 \\cos 30^{\\circ} = f$. Solving these gives $h/l = 3/16$."
-  },
-  {
-    "id": 105, "subject": "Physics", "type": "INTEGER",
-    "text": "A water cooler of storage capacity 120 litres can cool water at a constant rate of P watts. In a closed circulation system (as used for cooling a nuclear reactor), the water from the cooler is used to cool an external device that generates thermal power 3000 W. The temperature of water increases to $30^{\\circ}C$ in 2 hours. Specific heat of water is $4200 J/kg^{\\circ}C$. Find P if initial temp was $10^{\\circ}C$.",
-    "imageUrl": "",
-    "options": [],
-    "correctAnswer": "1600",
-    "solution": "Net heat gained = Heat from device - Heat removed by cooler. $ms\\Delta T = (P_{dev} - P) \\times t$. $120 \\times 4200 \\times 20 = (3000 - P) \\times 7200$. $10080000 = 21600000 - 7200 P$. $P = 1600 W$."
-  },
-
-  // CHEMISTRY (JEE ADV 2016 Pattern)
-  {
-    "id": 201, "subject": "Chemistry", "type": "MCQ",
-    "text": "The geometries of the ammonia complexes of $Ni^{2+}, Pt^{2+}$ and $Zn^{2+}$, respectively, are:",
-    "imageUrl": "",
+    "id": 2,
+    "subject": "Physics",
+    "type": "MCQ",
+    "text": "A water cooler of storage capacity 120 litres can cool water at a constant rate of P watts. In a closed circulation system, the water from the cooler is used to cool an external device that generates constantly $3 kW$ of heat. The temperature of water fed into the device cannot exceed $30^0 C$ and the entire stored 120 litres of water is initially cooled to $10^0 C$. The minimum value of P (in watts) for which the device can be operated for 3 hours is",
+    "imageUrl": "https://placehold.co/400x200?text=Diagram+URL+Here",
     "options": [
-      "octahedral, square planar and tetrahedral",
-      "square planar, octahedral and tetrahedral",
-      "tetrahedral, square planar and octahedral",
-      "octahedral, tetrahedral and square planar"
+      "1600",
+      "2067",
+      "2533",
+      "3933"
     ],
-    "correctAnswer": 0,
-    "solution": "$Ni^{2+}$ with $NH_3$ forms $[Ni(NH_3)_6]^{2+}$ which is octahedral ($sp^3d^2$). $Pt^{2+}$ forms $[Pt(NH_3)_4]^{2+}$ which is square planar ($dsp^2$). $Zn^{2+}$ forms $[Zn(NH_3)_4]^{2+}$ which is tetrahedral ($sp^3$)."
-  },
-  {
-    "id": 202, "subject": "Chemistry", "type": "MCQ",
-    "text": "Extraction of copper from copper pyrite $(CuFeS_2)$ involves:",
-    "imageUrl": "",
-    "options": [
-      "Crushing followed by concentration by magnetic separation",
-      "Removal of iron as slag",
-      "Self-reduction step to produce 'blister copper' following evolution of $SO_2$",
-      "Both B and C are correct"
-    ],
-    "correctAnswer": 3,
-    "solution": "Copper pyrite is concentrated by froth floatation, not magnetic separation. Iron is removed as $FeSiO_3$ slag. Final step is self reduction: $Cu_2S + 2Cu_2O \\rightarrow 6Cu + SO_2$ (blister copper). Hence Both B and C."
-  },
-  {
-    "id": 203, "subject": "Chemistry", "type": "INTEGER",
-    "text": "The total number of stereoisomers that can exist for M is (where M is a complex $M(A-B)_2Cl_2$):",
-    "imageUrl": "",
-    "options": [],
-    "correctAnswer": "4",
-    "solution": "An unsymmetrical bidentate ligand $(A-B)$ with $Cl_2$ can form Trans (1 enantiomer pair = 2) and Cis (1 enantiomer pair = 2). Total stereoisomers = 4."
-  },
-  {
-    "id": 204, "subject": "Chemistry", "type": "MCQ",
-    "text": "The correct statement(s) about the following reaction sequence is(are): \n Cumene $(i) O_2 \\rightarrow (ii) H_3O^+ \\rightarrow P + Q$",
-    "imageUrl": "",
-    "options": [
-      "P is Phenol and Q is Acetone",
-      "P is Benzoic acid",
-      "Reaction is electrophilic substitution",
-      "Q is Acetaldehyde"
-    ],
-    "correctAnswer": 0,
-    "solution": "This is the industrial preparation of phenol from cumene (isopropylbenzene). Cumene hydroperoxide is formed intermediate, which on acid hydrolysis gives Phenol (P) and Acetone (Q)."
-  },
-  {
-    "id": 205, "subject": "Chemistry", "type": "INTEGER",
-    "text": "Among the following, the number of compounds that can react with $PCl_5$ to give $POCl_3$ is: $O_2$, $CO_2$, $SO_2$, $H_2O$, $H_2SO_4$, $P_4O_{10}$.",
-    "imageUrl": "",
-    "options": [],
-    "correctAnswer": "3",
-    "solution": "$SO_2 + PCl_5 \\rightarrow SOCl_2 + POCl_3$. $H_2O + PCl_5 \\rightarrow POCl_3 + 2HCl$. $H_2SO_4 + PCl_5 \\rightarrow SO_2Cl_2 + 2POCl_3 + 2HCl$. The other three do not give $POCl_3$ directly. Total = 3."
-  },
-
-  // MATHEMATICS (JEE ADV 2016 Pattern)
-  {
-    "id": 301, "subject": "Mathematics", "type": "MCQ",
-    "text": "Let $P$ be a matrix of order $3 \\times 3$ such that all the entries in $P$ are from the set $\\{-1, 0, 1\\}$. Then, the maximum possible value of the determinant of $P$ is:",
-    "imageUrl": "",
-    "options": ["4", "6", "8", "9"],
-    "correctAnswer": 0,
-    "solution": "The maximum determinant for a $3\\times3$ matrix with entries in $\\{-1, 0, 1\\}$ is 4. Example matrix has rows [1, 1, -1], [1, -1, 1], [-1, 1, 1]."
-  },
-  {
-    "id": 302, "subject": "Mathematics", "type": "MCQ",
-    "text": "Let $f: \\mathbb{R} \\rightarrow \\mathbb{R}$ be a differentiable function such that $f(0)=0$, $f(\\frac{\\pi}{2})=3$ and $f'(0)=1$. If $g(x) = \\int_x^{\\frac{\\pi}{2}} [f'(t) \\csc t - f(t) \\csc t \\cot t] dt$ for $x \\in (0, \\frac{\\pi}{2}]$, then $\\lim_{x \\to 0} g(x)$ is:",
-    "imageUrl": "",
-    "options": ["2", "3", "4", "Does not exist"],
-    "correctAnswer": 0,
-    "solution": "Notice the integrand is the derivative of $f(t) \\csc t$. So $g(x) = [f(t) \\csc t]_x^{\\pi/2} = f(\\pi/2) \\csc(\\pi/2) - f(x) \\csc x$. We are given $f(\\pi/2) = 3$. So $g(x) = 3 - \\frac{f(x)}{\\sin x}$. As $x \\to 0$, $\\frac{f(x)}{\\sin x} \\to f'(0) = 1$. Limit is $3 - 1 = 2$."
-  },
-  {
-    "id": 303, "subject": "Mathematics", "type": "INTEGER",
-    "text": "The value of $\\sum_{k=1}^{13} \\frac{1}{\\sin(\\frac{\\pi}{4} + \\frac{(k-1)\\pi}{6}) \\sin(\\frac{\\pi}{4} + \\frac{k\\pi}{6})}$ is equal to $3\\sqrt{2}-...$ find the exact missing integer part?",
-    "imageUrl": "",
-    "options": [],
-    "correctAnswer": "2",
-    "solution": "Multiply and divide by $\\sin(\\pi/6)$. The general term becomes $\\frac{\\sin(A-B)}{\\sin A \\sin B} = \\cot B - \\cot A$. It forms a telescoping series. The sum evaluates to $2(\\sqrt{3}-1)$, matching the form given and integer part derived from simplification."
-  },
-  {
-    "id": 304, "subject": "Mathematics", "type": "MCQ",
-    "text": "Let the curve $C$ be the mirror image of the parabola $y^2 = 4x$ with respect to the line $x + y + 4 = 0$. If A and B are the points of intersection of C with the line $y = -5$, then the distance between A and B is:",
-    "imageUrl": "",
-    "options": ["4", "$\\sqrt{10}$", "2", "6"],
-    "correctAnswer": 0,
-    "solution": "The mirror image of the line $y=-5$ with respect to $x+y+4=0$ is $x = 1$. The points of intersection of $x=1$ with $y^2=4x$ are $(1, 2)$ and $(1, -2)$. Distance between them is 4. The distance is invariant under reflection, so distance between A and B is 4."
+    "correctAnswer": 1,
+    "solution": "$(P_{heater} - P_{cooler}) \\times t = ms\\Delta T.$\n$\\Rightarrow (3 \\times 10^3 - P) \\times 3 \\times 3600 = 120 \\times 4.2 \\times 10^3 \\times 20$\n$\\Rightarrow P = 2067$"
   }
-];
-
-// Dynamically pad the test to exact 51 questions to mimic a massive real JEE Adv Paper
-const generateMegaTest = () => {
-  const fullTest = [...BASE_ADVANCED_TEST];
-  let idCounter = 500;
   
-  // Fill Physics up to 17
-  while (fullTest.filter(q => q.subject === 'Physics').length < 17) {
-    fullTest.push({
-      id: idCounter++, subject: "Physics", type: "MCQ",
-      text: `A particle of mass $m=${idCounter/100} kg$ performs SHM with amplitude $A=2m$. Find the maximum restoring force.`,
-      imageUrl: "",
-      options: ["$10 N$", "$20 N$", "$30 N$", "$40 N$"],
-      correctAnswer: 1,
-      solution: "Using standard SHM formula $F = m \\omega^2 A$."
-    });
-  }
-  // Fill Chemistry up to 17
-  while (fullTest.filter(q => q.subject === 'Chemistry').length < 17) {
-    fullTest.push({
-      id: idCounter++, subject: "Chemistry", type: "MCQ",
-      text: `Identify the major product when reactant ${idCounter} is treated with strong acid at high temperature.`,
-      imageUrl: "",
-      options: ["Alkene", "Alcohol", "Ketone", "Carboxylic Acid"],
-      correctAnswer: 0,
-      solution: "Dehydration of alcohols in acidic medium favors elimination (Alkene)."
-    });
-  }
-  // Fill Maths up to 17
-  while (fullTest.filter(q => q.subject === 'Mathematics').length < 17) {
-    fullTest.push({
-      id: idCounter++, subject: "Mathematics", type: "INTEGER",
-      text: `Find the area enclosed by the curve $y = x^2$ and the line $y = ${idCounter % 5 + 1}$.`,
-      imageUrl: "",
-      options: [],
-      correctAnswer: String(idCounter % 5 + 1),
-      solution: "Standard definite integration of upper curve minus lower curve."
-    });
-  }
-  return fullTest;
-};
+  // ⬇️⬇️ BHAI YAHAN PAR APNE BAAKI BAACHE HUE 49 QUESTIONS BINA KISI TENSION KE PASTE KAR DO ⬇️⬇️
+  // Uske baad file save kar lena, code automatically hazaron lines ka ho jayega aur ekdum solid chalega!
 
-const JEE_ADV_2016_MEGA_TEST = generateMegaTest();
+];
 
 
 // ============================================================================
@@ -230,21 +76,14 @@ const JEE_ADV_2016_MEGA_TEST = generateMegaTest();
 // ============================================================================
 export default function JEEParivarUltimateLatexApp() {
   
-  // -- State: View Routing --
   const [currentView, setCurrentView] = useState<'landing' | 'login' | 'dashboard' | 'test' | 'result' | 'remediation' | 'focus' | 'planner'>('landing');
-  
-  // -- State: Auth --
   const [authMethod, setAuthMethod] = useState<'choice' | 'phone' | 'google' | 'name'>('choice');
   const [studentName, setStudentName] = useState('Aspirant');
   const [phoneNumber, setPhoneNumber] = useState('');
 
-  // -- State: My Files (Test Library) --
   const [myTests, setMyTests] = useState([]);
-  
-  // -- State: Notifications --
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
-  // -- State: Planner & Backlog Matrix --
   const [microGoals, setMicroGoals] = useState([]);
   const [newMicroGoal, setNewMicroGoal] = useState('');
   const [backlogs, setBacklogs] = useState([
@@ -253,7 +92,6 @@ export default function JEEParivarUltimateLatexApp() {
     { id: '3', subject: 'Mathematics', chapter: 'Definite Integration', sm1: false, sm2: false, sm3: false, sm4: false }
   ]);
 
-  // -- State: Test Engine --
   const [examType, setExamType] = useState('CUSTOM');
   const [customMinutes, setCustomMinutes] = useState(180);
   const [timer, setTimer] = useState(10800); 
@@ -266,16 +104,12 @@ export default function JEEParivarUltimateLatexApp() {
 
   const [scoreCard, setScoreCard] = useState(null);
 
-  // -- State: Focus Mode & Anti-Cheat --
   const [focusMinutes, setFocusMinutes] = useState(25);
   const [focusTimerSeconds, setFocusTimerSeconds] = useState(25 * 60);
   const [isFocusActive, setIsFocusActive] = useState(false);
   const [isLockedDown, setIsLockedDown] = useState(false);
   const [typedVerification, setTypedVerification] = useState('');
 
-  // ============================================================================
-  // ⚙️ 4. LIFECYCLE & LOCAL STORAGE HANDLERS
-  // ============================================================================
   useEffect(() => {
     try {
       const savedTests = localStorage.getItem('jee_my_files');
@@ -326,9 +160,6 @@ export default function JEEParivarUltimateLatexApp() {
     setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
   };
 
-  // ============================================================================
-  // 📝 5. PLANNER & BACKLOG LOGIC
-  // ============================================================================
   const handleAddMicroGoal = (e) => {
     e.preventDefault();
     if (!newMicroGoal.trim()) return;
@@ -344,15 +175,12 @@ export default function JEEParivarUltimateLatexApp() {
   const updateBacklogField = (id, field, value) => setBacklogs(backlogs.map(b => b.id === id ? { ...b, [field]: value } : b));
   const deleteBacklogRow = (id) => { if (window.confirm("Are you sure?")) setBacklogs(backlogs.filter(b => b.id !== id)); };
 
-  // ============================================================================
-  // 📂 6. STRICT JSON FILE UPLOAD LOGIC
-  // ============================================================================
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
     if (file.type !== "application/json" && !file.name.endsWith('.json')) {
-      showToast("Error: Only .json files are supported! Please convert your PDF first.", "error");
+      showToast("Error: Only .json files are supported!", "error");
       return;
     }
 
@@ -392,9 +220,6 @@ export default function JEEParivarUltimateLatexApp() {
     }
   };
 
-  // ============================================================================
-  // ⏱️ 7. TEST ENGINE TIMERS & ANTI-CHEAT
-  // ============================================================================
   useEffect(() => {
     let interval;
     if (currentView === 'test' && timer > 0 && !scoreCard) {
@@ -435,9 +260,6 @@ export default function JEEParivarUltimateLatexApp() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [isFocusActive, isLockedDown, currentView, scoreCard]);
 
-  // ============================================================================
-  // 🕹️ 8. TEST ACTIONS (START, SUBMIT, KEYPAD)
-  // ============================================================================
   const startTestFromLibrary = (test) => {
     setTestQuestions(test.data);
     setExamType(test.name);
@@ -546,7 +368,6 @@ export default function JEEParivarUltimateLatexApp() {
     localStorage.removeItem('jee_test_timer');
   };
 
-  // NEW: Robust Auto YouTube Link Generator
   const getYouTubeSearchLink = (text) => {
     if (!text) return 'https://www.youtube.com/results?search_query=JEE+Advanced+Solution';
     const cleanText = text.replace(/[\$\\]/g, ' ').slice(0, 60).trim();
@@ -562,10 +383,6 @@ export default function JEEParivarUltimateLatexApp() {
 
   const uniqueSubjects = [...new Set(testQuestions.map(q => q.subject || 'General'))];
 
-  // ============================================================================
-  // 🖥️ 9. COMPONENT RENDER LOGIC
-  // ============================================================================
-
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-orange-500/30">
       
@@ -576,9 +393,6 @@ export default function JEEParivarUltimateLatexApp() {
         </div>
       )}
 
-      {/* ------------------------------------------------------------------------
-          VIEW: LANDING PAGE (WITH IIT IMAGES & JSON UPLOAD)
-          ------------------------------------------------------------------------ */}
       {currentView === 'landing' && (
         <div className="flex flex-col min-h-screen">
           <nav className="flex justify-between items-center px-6 md:px-10 py-5 border-b border-slate-800 bg-slate-900/80 backdrop-blur-lg sticky top-0 z-50">
@@ -594,7 +408,6 @@ export default function JEEParivarUltimateLatexApp() {
           <main className="flex-1 flex flex-col items-center justify-start pb-20 space-y-12 relative overflow-hidden">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-orange-500/10 blur-[100px] rounded-full pointer-events-none"></div>
             
-            {/* IIT Dream Collage (Original Photos) */}
             <div className="w-full max-w-7xl mx-auto px-6 pt-12 relative z-10">
               <h2 className="text-center text-sm font-black text-slate-500 uppercase tracking-[0.3em] mb-6">Your Dream Destinations</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -645,9 +458,6 @@ export default function JEEParivarUltimateLatexApp() {
         </div>
       )}
 
-      {/* ------------------------------------------------------------------------
-          VIEW: LOGIN / AUTH
-          ------------------------------------------------------------------------ */}
       {currentView === 'login' && (
         <div className="flex items-center justify-center min-h-screen p-6 relative">
           <div className="absolute top-6 left-6 cursor-pointer opacity-50 hover:opacity-100 transition-opacity" onClick={() => setCurrentView('landing')}>
@@ -700,9 +510,6 @@ export default function JEEParivarUltimateLatexApp() {
         </div>
       )}
 
-      {/* ------------------------------------------------------------------------
-          VIEW: DASHBOARD & MY FILES (LIBRARY)
-          ------------------------------------------------------------------------ */}
       {currentView === 'dashboard' && (
         <div className="min-h-screen flex flex-col pb-10">
           <header className="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 px-6 md:px-10 py-5 flex flex-wrap justify-between items-center sticky top-0 z-40 gap-4">
@@ -773,11 +580,10 @@ export default function JEEParivarUltimateLatexApp() {
                     </div>
                   ))}
                   
-                  {/* Always show Default option */}
                   <div className="bg-slate-950 border border-slate-800 rounded-2xl p-6 flex flex-col shadow-inner relative overflow-hidden">
                     <div className="absolute top-0 right-0 bg-green-500/20 text-green-400 text-[10px] font-black px-3 py-1 rounded-bl-xl border-l border-b border-green-500/30">BUILT-IN</div>
                     <h3 className="text-xl font-black text-slate-300 mt-4 mb-2">JEE Adv 2016 Mock</h3>
-                    <p className="text-sm text-slate-500 mb-6 font-medium">Pre-loaded 51 Qs Mega Test</p>
+                    <p className="text-sm text-slate-500 mb-6 font-medium">Pre-loaded Mega Test</p>
                     <button onClick={startDefaultFallbackTest} className="mt-auto w-full py-3.5 bg-slate-800 hover:bg-slate-700 text-white font-black rounded-xl transition-all">
                       Start Test
                     </button>
@@ -798,9 +604,6 @@ export default function JEEParivarUltimateLatexApp() {
         </div>
       )}
 
-      {/* ------------------------------------------------------------------------
-          VIEW: PLANNER & BACKLOG MATRIX
-          ------------------------------------------------------------------------ */}
       {currentView === 'planner' && (
         <div className="min-h-screen bg-slate-950 p-6 md:p-10 flex flex-col items-center">
           <div className="w-full max-w-6xl">
@@ -904,9 +707,6 @@ export default function JEEParivarUltimateLatexApp() {
         </div>
       )}
 
-      {/* ------------------------------------------------------------------------
-          VIEW: TEST ENGINE (NTA REPLICA)
-          ------------------------------------------------------------------------ */}
       {currentView === 'test' && testQuestions.length > 0 && (
         <div className="flex flex-col h-screen overflow-hidden bg-slate-950">
           
@@ -1064,9 +864,6 @@ export default function JEEParivarUltimateLatexApp() {
         </div>
       )}
 
-      {/* ------------------------------------------------------------------------
-          VIEW: RESULT SCORECARD (ANALYTICS) WITH NTA PERCENTILE
-          ------------------------------------------------------------------------ */}
       {currentView === 'result' && scoreCard && (
         <div className="min-h-screen p-6 md:p-10 max-w-6xl mx-auto animate-in fade-in zoom-in duration-500">
           <header className="flex justify-between items-center mb-10 border-b border-slate-800 pb-6">
@@ -1150,9 +947,6 @@ export default function JEEParivarUltimateLatexApp() {
         </div>
       )}
 
-      {/* ------------------------------------------------------------------------
-          VIEW: REMEDIATION (SOLUTIONS)
-          ------------------------------------------------------------------------ */}
       {currentView === 'remediation' && scoreCard && (
         <div className="min-h-screen p-6 md:p-10 max-w-5xl mx-auto">
           <header className="flex justify-between items-center mb-10 border-b border-slate-800 pb-6 sticky top-0 bg-slate-950/90 backdrop-blur-md z-40">
@@ -1243,9 +1037,6 @@ export default function JEEParivarUltimateLatexApp() {
         </div>
       )}
 
-      {/* ------------------------------------------------------------------------
-          VIEW: FOCUS MODE (ANTI-CHEAT STUDY TIMER)
-          ------------------------------------------------------------------------ */}
       {currentView === 'focus' && (
         <div className="min-h-screen p-6 md:p-10 max-w-4xl mx-auto flex flex-col items-center justify-center">
           <div className="w-full bg-slate-900 p-10 rounded-3xl border border-slate-800 shadow-2xl text-center space-y-8">
