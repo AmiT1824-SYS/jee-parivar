@@ -3,15 +3,17 @@
 
 /**
  * ============================================================================
- * 🚀 JEE PARIVAR - ULTIMATE NTA EXAM ENGINE (v3.0)
+ * 🚀 JEE PARIVAR - ULTIMATE NTA EXAM ENGINE (v4.0)
  * ============================================================================
  * Features:
  * - 📂 Landing Page Direct JSON Upload
  * - 📚 My Files (Persistent Test Library)
  * - 🧠 NTA-style Test Engine with Subject Tabs
  * - 📊 Deep Analytics & Scorecards
- * - ⏱️ Focus Mode & Anti-Cheat System
+ * - ⏱️ Strict Focus Mode & Anti-Cheat System
  * - 📝 Full LaTeX Equation Support
+ * - 📅 NEW: Custom Micro-Goals Tracker (Bypass Rigid Calendars)
+ * - 📉 NEW: Backlog Eliminator Matrix (Editable Subjects, Chapters & SM Tracking)
  * ============================================================================
  */
 
@@ -32,14 +34,17 @@ const Icons = {
   Alert: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>,
   Home: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
   Clock: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
-  User: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+  User: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+  Calendar: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
+  Plus: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+  Target: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
 };
 
 // ============================================================================
 // 📦 2. MASSIVE DEFAULT MOCK TEST (FALLBACK DATA)
 // ============================================================================
-// Agar user ki library khali ho, toh yeh NTA standard mock test dikhega.
 const DEFAULT_FALLBACK_TEST = [
+  // PHYSICS
   {
     "id": 101, "subject": "Physics", "type": "MCQ",
     "text": "A particle of mass $m$ is projected with velocity $v_0$ at an angle $\\theta$ with the horizontal. The magnitude of angular momentum of the particle about the point of projection when it is at the highest point of its trajectory is:",
@@ -65,6 +70,24 @@ const DEFAULT_FALLBACK_TEST = [
     "solution": "Total Energy $E = mgh = 2 \\times 10 \\times 7 = 140 J$.\nFor solid sphere, $K_{trans} = \\frac{5}{7} K_{total} = \\frac{5}{7} \\times 140 = 100 J$."
   },
   {
+    "id": 104, "subject": "Physics", "type": "MCQ",
+    "text": "Figure shows refraction of a ray in air incident at $60^{\\circ}$ with the normal to a glass air interface. What is the angle of refraction in glass when the angle of incidence in water is $45^{\\circ}$ with the normal to a water-glass interface?",
+    "imageUrl": "",
+    "options": ["$38^{\\circ}$", "$60^{\\circ}$", "$90^{\\circ}$", "$52^{\\circ}$"],
+    "correctAnswer": 0,
+    "solution": "Applying Snell's law at both interfaces to find the relative refractive index. Solving yields approximately $38^{\\circ}$."
+  },
+  {
+    "id": 105, "subject": "Physics", "type": "INTEGER",
+    "text": "Find out the required inductance (in Henry) to put in series of bulb (10W, 60V) to run it safely across an alternating supply of 100V, 60Hz. (Take $\\pi = 3$, approx value)",
+    "imageUrl": "",
+    "options": [],
+    "correctAnswer": "1",
+    "solution": "Current required for bulb $I = P/V = 10/60 = 1/6 A$. Resistance $R = V^2/P = 3600/10 = 360 \\Omega$. Total impedance $Z = V_{source}/I = 100 / (1/6) = 600 \\Omega$. Use $Z^2 = R^2 + X_L^2$ to find $X_L=480$, then $L = X_L / 2\\pi f \\approx 1.27$ but as per options closest integer in calculation is around 1."
+  },
+  
+  // CHEMISTRY
+  {
     "id": 201, "subject": "Chemistry", "type": "MCQ",
     "text": "Which of the following complexes is diamagnetic?",
     "imageUrl": "",
@@ -81,6 +104,24 @@ const DEFAULT_FALLBACK_TEST = [
     "solution": "$t = \\frac{2.303}{k} \\log(\\frac{100}{100-99.9}) = \\frac{2.303}{k} \\log(10^3) = 3 \\times \\frac{2.303}{k}$.\nAlso, $t_{1/2} = \\frac{0.693}{k} = \\frac{2.303 \\times 0.3}{k}$.\nDividing the two: $\\frac{t}{t_{1/2}} = \\frac{3}{0.3} = 10$."
   },
   {
+    "id": 203, "subject": "Chemistry", "type": "MCQ",
+    "text": "Benzaldehyde and 3-pentanone can be distinguished by:",
+    "imageUrl": "",
+    "options": ["2,4 D.N.P.", "Fehling solution", "$I_{2}+NaOH$", "$NaHSO_{3}$"],
+    "correctAnswer": 3,
+    "solution": "Aldehydes and sterically unhindered ketones form bisulphite adducts with $NaHSO_3$. 3-pentanone is sterically hindered and does not react easily."
+  },
+  {
+    "id": 204, "subject": "Chemistry", "type": "MCQ",
+    "text": "In the following sequence of reactions 'Z' will be: $CH_3CH_2OH \\xrightarrow{KMnO_4} (X) \\xrightarrow{SOCl_2} (Y) \\xrightarrow{NH_3} (Z) \\xrightarrow{Br_2/NaOH} product$",
+    "imageUrl": "",
+    "options": ["Acetic acid", "Acetone", "Methyl amine", "Ethyl amine"],
+    "correctAnswer": 2,
+    "solution": "X is Acetic acid, Y is Acetyl chloride, Z is Acetamide. Bromine + NaOH on Acetamide gives Methyl amine (Hoffmann bromamide degradation)."
+  },
+
+  // MATHEMATICS
+  {
     "id": 301, "subject": "Mathematics", "type": "MCQ",
     "text": "Evaluate the limit: $\\lim_{x \\to 0} \\frac{\\int_0^x t \\sin(10t) dt}{x^3}$",
     "imageUrl": "",
@@ -95,6 +136,22 @@ const DEFAULT_FALLBACK_TEST = [
     "options": [],
     "correctAnswer": "33",
     "solution": "General term $T_{r+1} = \\binom{256}{r} 3^{\\frac{256-r}{2}} 5^{\\frac{r}{8}}$.\nFor term to be integer, $\\frac{256-r}{2}$ and $\\frac{r}{8}$ must be integers.\nSo, $r$ must be a multiple of $8$. Possible values of $r = 0, 8, 16, ..., 256$.\nNumber of values = $\\frac{256}{8} + 1 = 32 + 1 = 33$."
+  },
+  {
+    "id": 303, "subject": "Mathematics", "type": "MCQ",
+    "text": "The value of $\\int_{0}^{1} x(1-x)^{98} dx$ is:",
+    "imageUrl": "",
+    "options": ["$\\frac{1}{9900}$", "$\\frac{1}{4995}$", "$\\frac{1}{9997}$", "none of these"],
+    "correctAnswer": 0,
+    "solution": "Using property $\\int_0^a f(x)dx = \\int_0^a f(a-x)dx$, the integral becomes $\\int_0^1 (1-x)x^{98} dx = \\int_0^1 (x^{98} - x^{99}) dx = \\frac{1}{99} - \\frac{1}{100} = \\frac{1}{9900}$."
+  },
+  {
+    "id": 304, "subject": "Mathematics", "type": "INTEGER",
+    "text": "Find the value of $m (m>0)$ for which the area bounded by the line $y=mx+2$ and $x=2y-y^{2}$ is $9/2$ square units.",
+    "imageUrl": "",
+    "options": [],
+    "correctAnswer": "1",
+    "solution": "Solve for the points of intersection between the line and parabola, then integrate the difference of functions with respect to y. By calculation $m=1$."
   }
 ];
 
@@ -104,7 +161,8 @@ const DEFAULT_FALLBACK_TEST = [
 export default function JEEParivarUltimateLatexApp() {
   
   // -- State: View Routing --
-  const [currentView, setCurrentView] = useState<'landing' | 'login' | 'dashboard' | 'test' | 'result' | 'remediation' | 'focus'>('landing');
+  // Views: landing | login | dashboard | test | result | remediation | focus | planner
+  const [currentView, setCurrentView] = useState<'landing' | 'login' | 'dashboard' | 'test' | 'result' | 'remediation' | 'focus' | 'planner'>('landing');
   
   // -- State: Auth --
   const [authMethod, setAuthMethod] = useState<'choice' | 'phone' | 'google' | 'name'>('choice');
@@ -118,6 +176,16 @@ export default function JEEParivarUltimateLatexApp() {
   
   // -- State: Notifications --
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+
+  // -- State: Planner & Backlog Matrix --
+  const [microGoals, setMicroGoals] = useState([]);
+  const [newMicroGoal, setNewMicroGoal] = useState('');
+  
+  const [backlogs, setBacklogs] = useState([
+    { id: '1', subject: 'Physics', chapter: 'Rotational Motion', sm1: false, sm2: false, sm3: false, sm4: false },
+    { id: '2', subject: 'Chemistry', chapter: 'Ionic Equilibrium', sm1: false, sm2: false, sm3: false, sm4: false },
+    { id: '3', subject: 'Mathematics', chapter: 'Definite Integration', sm1: false, sm2: false, sm3: false, sm4: false }
+  ]);
 
   // -- State: Test Engine --
   const [examType, setExamType] = useState('CUSTOM');
@@ -157,6 +225,13 @@ export default function JEEParivarUltimateLatexApp() {
       const savedUser = localStorage.getItem('jee_student_name');
       if (savedUser) setStudentName(savedUser);
 
+      // Load Planner Data
+      const savedGoals = localStorage.getItem('jee_micro_goals');
+      if (savedGoals) setMicroGoals(JSON.parse(savedGoals));
+      
+      const savedBacklogs = localStorage.getItem('jee_backlog_matrix');
+      if (savedBacklogs) setBacklogs(JSON.parse(savedBacklogs));
+
       // Load ongoing test state if exists
       const savedView = localStorage.getItem('jee_current_view');
       if (savedView === 'test' || savedView === 'result') {
@@ -188,6 +263,15 @@ export default function JEEParivarUltimateLatexApp() {
     }
   }, [answers]);
 
+  // Save Planner Data continuously
+  useEffect(() => {
+    localStorage.setItem('jee_micro_goals', JSON.stringify(microGoals));
+  }, [microGoals]);
+
+  useEffect(() => {
+    localStorage.setItem('jee_backlog_matrix', JSON.stringify(backlogs));
+  }, [backlogs]);
+
   // Toast Helper
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message, type });
@@ -195,7 +279,56 @@ export default function JEEParivarUltimateLatexApp() {
   };
 
   // ============================================================================
-  // 📂 5. FILE UPLOAD LOGIC (LANDING PAGE & DASHBOARD)
+  // 📝 5. PLANNER & BACKLOG LOGIC
+  // ============================================================================
+
+  // Micro Goals Logic
+  const handleAddMicroGoal = (e) => {
+    e.preventDefault();
+    if (!newMicroGoal.trim()) return;
+    const newGoal = {
+      id: Date.now().toString(),
+      text: newMicroGoal,
+      completed: false,
+      createdAt: new Date().toISOString()
+    };
+    setMicroGoals([newGoal, ...microGoals]);
+    setNewMicroGoal('');
+    showToast("Micro-goal added! Time to crush it. 🔥");
+  };
+
+  const toggleMicroGoal = (id) => {
+    setMicroGoals(microGoals.map(g => g.id === id ? { ...g, completed: !g.completed } : g));
+  };
+
+  const deleteMicroGoal = (id) => {
+    setMicroGoals(microGoals.filter(g => g.id !== id));
+  };
+
+  // Backlog Matrix Logic
+  const handleAddBacklogRow = () => {
+    const newRow = {
+      id: Date.now().toString(),
+      subject: 'New Subject',
+      chapter: 'New Chapter',
+      sm1: false, sm2: false, sm3: false, sm4: false
+    };
+    setBacklogs([...backlogs, newRow]);
+  };
+
+  const updateBacklogField = (id, field, value) => {
+    setBacklogs(backlogs.map(b => b.id === id ? { ...b, [field]: value } : b));
+  };
+
+  const deleteBacklogRow = (id) => {
+    if (window.confirm("Are you sure you want to delete this backlog entry?")) {
+      setBacklogs(backlogs.filter(b => b.id !== id));
+    }
+  };
+
+
+  // ============================================================================
+  // 📂 6. FILE UPLOAD LOGIC (LANDING PAGE & DASHBOARD)
   // ============================================================================
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
@@ -230,7 +363,6 @@ export default function JEEParivarUltimateLatexApp() {
         
         showToast(`🎉 Super! "${file.name}" added to your Library.`);
         
-        // If uploaded from landing, push to dashboard
         if (currentView === 'landing') {
           if (studentName === 'Aspirant') {
             setCurrentView('login');
@@ -256,7 +388,7 @@ export default function JEEParivarUltimateLatexApp() {
   };
 
   // ============================================================================
-  // ⏱️ 6. TEST ENGINE TIMERS & ANTI-CHEAT
+  // ⏱️ 7. TEST ENGINE TIMERS & ANTI-CHEAT
   // ============================================================================
   useEffect(() => {
     let interval;
@@ -306,7 +438,7 @@ export default function JEEParivarUltimateLatexApp() {
   }, [isFocusActive, isLockedDown, currentView, scoreCard]);
 
   // ============================================================================
-  // 🕹️ 7. TEST ACTIONS (START, SUBMIT, KEYPAD)
+  // 🕹️ 8. TEST ACTIONS (START, SUBMIT, KEYPAD)
   // ============================================================================
   const startTestFromLibrary = (test) => {
     setTestQuestions(test.data);
@@ -317,7 +449,6 @@ export default function JEEParivarUltimateLatexApp() {
     setReviewStatus({});
     setQuestionTimers({});
     
-    // Auto-detect first subject
     if (test.data.length > 0 && test.data[0].subject) {
       setActiveSubject(test.data[0].subject);
     }
@@ -388,7 +519,6 @@ export default function JEEParivarUltimateLatexApp() {
     let correct = 0, incorrect = 0, unattempted = 0;
     let subjectStats = {};
 
-    // Init stats for all unique subjects
     testQuestions.forEach(q => {
       const subj = q.subject || 'General';
       if (!subjectStats[subj]) subjectStats[subj] = { correct: 0, incorrect: 0, total: 0, score: 0 };
@@ -415,7 +545,6 @@ export default function JEEParivarUltimateLatexApp() {
     const totalScore = (correct * 4) - (incorrect * 1);
     const maxPossibleScore = testQuestions.length * 4;
     
-    // Dynamic Percentile formula (Mock)
     const ratio = totalScore / maxPossibleScore;
     let percentile = 0;
     if (ratio > 0.8) percentile = 99 + (ratio - 0.8) * 4;
@@ -429,14 +558,14 @@ export default function JEEParivarUltimateLatexApp() {
       incorrect, 
       unattempted, 
       percentile: percentile.toFixed(2) + '%', 
-      rank: Math.floor(Math.random() * 5000) + 100, // Fun mock rank
+      rank: Math.floor(Math.random() * 5000) + 100, 
       sillyMistakes: Math.floor(incorrect * 0.4), 
       conceptualGaps: Math.ceil(incorrect * 0.6), 
       subjectStats
     });
     
     setCurrentView('result');
-    localStorage.removeItem('jee_test_timer'); // Clear active test marker
+    localStorage.removeItem('jee_test_timer');
   };
 
   const getYouTubeSearchLink = (text) => {
@@ -452,11 +581,10 @@ export default function JEEParivarUltimateLatexApp() {
     return `${hrs > 0 ? hrs.toString().padStart(2, '0') + ':' : ''}${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Extract unique subjects for NTA Tabs
   const uniqueSubjects = [...new Set(testQuestions.map(q => q.subject || 'General'))];
 
   // ============================================================================
-  // 🖥️ 8. COMPONENT RENDER LOGIC
+  // 🖥️ 9. COMPONENT RENDER LOGIC
   // ============================================================================
 
   return (
@@ -486,7 +614,6 @@ export default function JEEParivarUltimateLatexApp() {
           </nav>
 
           <main className="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-12 relative overflow-hidden">
-            {/* Background Glow */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-orange-500/10 blur-[100px] rounded-full pointer-events-none"></div>
             
             <div className="max-w-4xl relative z-10 space-y-6">
@@ -502,7 +629,6 @@ export default function JEEParivarUltimateLatexApp() {
               </p>
             </div>
 
-            {/* DRAG & DROP UPLOAD ZONE (FRONT PAGE) */}
             <div className="relative z-10 w-full max-w-2xl">
               <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-orange-500/50 rounded-3xl bg-orange-500/5 hover:bg-orange-500/10 transition-colors cursor-pointer group shadow-2xl">
                 <div className="flex flex-col items-center justify-center pt-5 pb-6 text-orange-400 group-hover:scale-110 transition-transform">
@@ -567,7 +693,6 @@ export default function JEEParivarUltimateLatexApp() {
               </div>
             )}
             
-            {/* Phone Logic Omitted for Brevity (Same as before but stylized) */}
             {authMethod === 'phone' && (
                <div className="space-y-5">
                <input type="tel" placeholder="Mobile Number" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} className="w-full p-4 bg-slate-950 border border-slate-700 rounded-xl outline-none focus:border-orange-500" />
@@ -584,12 +709,15 @@ export default function JEEParivarUltimateLatexApp() {
           ------------------------------------------------------------------------ */}
       {currentView === 'dashboard' && (
         <div className="min-h-screen flex flex-col pb-10">
-          <header className="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 px-6 md:px-10 py-5 flex justify-between items-center sticky top-0 z-40">
+          <header className="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 px-6 md:px-10 py-5 flex flex-wrap justify-between items-center sticky top-0 z-40 gap-4">
             <div>
               <h1 className="text-xl md:text-2xl font-black text-white">Welcome, <span className="text-orange-400">{studentName}</span> 🎯</h1>
               <p className="text-xs text-slate-400 mt-1">JEE 2026 Mission • Target: IIT Bombay</p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-3 flex-wrap">
+              <button onClick={() => setCurrentView('planner')} className="px-4 py-2 bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 border border-blue-500/30 rounded-xl font-bold flex items-center gap-2 transition-colors text-sm">
+                <Icons.Calendar /> Planner & Backlogs
+              </button>
               <button onClick={() => setCurrentView('focus')} className="px-4 py-2 bg-purple-600/20 text-purple-400 hover:bg-purple-600/30 border border-purple-500/30 rounded-xl font-bold flex items-center gap-2 transition-colors text-sm">
                 <Icons.Clock /> Focus Mode
               </button>
@@ -599,20 +727,18 @@ export default function JEEParivarUltimateLatexApp() {
 
           <main className="max-w-6xl w-full mx-auto px-6 mt-10 space-y-10">
             
-            {/* Quick Upload Widget inside Dashboard */}
             <div className="bg-gradient-to-r from-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row justify-between items-center gap-6 shadow-xl">
               <div>
                 <h2 className="text-2xl font-black text-white mb-2">Add New Test</h2>
                 <p className="text-sm text-slate-400">Upload a JSON file formatted via AI. It stays locally in your browser.</p>
               </div>
-              <label className="cursor-pointer bg-orange-500 hover:bg-orange-600 text-slate-950 font-black px-8 py-4 rounded-xl shadow-lg transition-transform hover:-translate-y-1 flex items-center gap-3">
+              <label className="cursor-pointer bg-orange-500 hover:bg-orange-600 text-slate-950 font-black px-8 py-4 rounded-xl shadow-lg transition-transform hover:-translate-y-1 flex items-center gap-3 whitespace-nowrap">
                 <Icons.Upload />
                 Select JSON File
                 <input type="file" accept=".json" className="hidden" onChange={handleFileUpload} />
               </label>
             </div>
 
-            {/* MY FILES LIBRARY */}
             <div>
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-orange-500/10 text-orange-400 rounded-xl flex items-center justify-center border border-orange-500/20">
@@ -651,7 +777,7 @@ export default function JEEParivarUltimateLatexApp() {
                     </div>
                   ))}
                   
-                  {/* Always show Default option as a card too */}
+                  {/* Always show Default option */}
                   <div className="bg-slate-950 border border-slate-800 rounded-2xl p-6 flex flex-col shadow-inner relative overflow-hidden">
                     <div className="absolute top-0 right-0 bg-green-500/20 text-green-400 text-[10px] font-black px-3 py-1 rounded-bl-xl border-l border-b border-green-500/30">BUILT-IN</div>
                     <h3 className="text-xl font-black text-slate-300 mt-4 mb-2">JEE Standard Mock</h3>
@@ -664,7 +790,6 @@ export default function JEEParivarUltimateLatexApp() {
               )}
             </div>
 
-            {/* Config Section */}
             <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 mt-12">
               <h3 className="text-lg font-black text-white mb-4">Test Configuration</h3>
               <div className="max-w-xs">
@@ -678,12 +803,167 @@ export default function JEEParivarUltimateLatexApp() {
       )}
 
       {/* ------------------------------------------------------------------------
+          VIEW: PLANNER & BACKLOG MATRIX (NEW FEATURE)
+          ------------------------------------------------------------------------ */}
+      {currentView === 'planner' && (
+        <div className="min-h-screen bg-slate-950 p-6 md:p-10 flex flex-col items-center">
+          <div className="w-full max-w-6xl">
+            
+            <header className="flex justify-between items-center mb-10 border-b border-slate-800 pb-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-blue-600/20 text-blue-400 rounded-2xl flex items-center justify-center border border-blue-500/30">
+                  <Icons.Calendar />
+                </div>
+                <div>
+                  <h2 className="text-3xl font-black text-white">Daily/Weekly Planner</h2>
+                  <p className="text-slate-400 text-sm mt-1">Crush backlogs and hit micro-goals</p>
+                </div>
+              </div>
+              <button onClick={() => setCurrentView('dashboard')} className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition-colors">
+                ← Dashboard
+              </button>
+            </header>
+
+            <div className="grid lg:grid-cols-3 gap-8">
+              
+              {/* SECTION 1: MICRO GOALS TRACKER */}
+              <div className="lg:col-span-1 bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl flex flex-col max-h-[80vh]">
+                <div className="flex items-center gap-3 mb-6">
+                  <Icons.Target />
+                  <h3 className="text-xl font-black text-amber-400">Micro-Goals</h3>
+                </div>
+                <p className="text-xs text-slate-400 mb-6 font-medium leading-relaxed">
+                  Set small, actionable targets independent of rigid batch calendars. e.g., "Do 30 Physics PYQs"
+                </p>
+
+                <form onSubmit={handleAddMicroGoal} className="mb-6 flex gap-2">
+                  <input 
+                    type="text" 
+                    value={newMicroGoal} 
+                    onChange={(e) => setNewMicroGoal(e.target.value)} 
+                    placeholder="Enter a new micro-goal..." 
+                    className="flex-1 p-3 bg-slate-950 border border-slate-700 rounded-xl text-white outline-none focus:border-amber-500 text-sm transition-colors"
+                  />
+                  <button type="submit" className="p-3 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl font-black transition-colors">
+                    <Icons.Plus />
+                  </button>
+                </form>
+
+                <div className="flex-1 overflow-y-auto space-y-3 pr-2">
+                  {microGoals.length === 0 ? (
+                    <div className="text-center text-slate-600 mt-10 text-sm font-bold border border-dashed border-slate-700 p-6 rounded-xl">
+                      No active micro-goals. Set one now!
+                    </div>
+                  ) : (
+                    microGoals.map(goal => (
+                      <div key={goal.id} className={`flex items-start justify-between p-4 rounded-xl border transition-all ${goal.completed ? 'bg-green-500/5 border-green-500/20 opacity-60' : 'bg-slate-950 border-slate-800'}`}>
+                        <label className="flex items-start gap-3 cursor-pointer flex-1">
+                          <input 
+                            type="checkbox" 
+                            checked={goal.completed} 
+                            onChange={() => toggleMicroGoal(goal.id)}
+                            className="mt-1 w-5 h-5 rounded border-slate-700 accent-amber-500 cursor-pointer"
+                          />
+                          <span className={`text-sm font-medium ${goal.completed ? 'line-through text-slate-500' : 'text-slate-300'}`}>
+                            {goal.text}
+                          </span>
+                        </label>
+                        <button onClick={() => deleteMicroGoal(goal.id)} className="ml-3 text-slate-600 hover:text-red-500 transition-colors">
+                          <Icons.Trash />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* SECTION 2: BACKLOG ELIMINATOR MATRIX */}
+              <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl flex flex-col">
+                <div className="flex justify-between items-center mb-6">
+                  <div>
+                    <h3 className="text-xl font-black text-blue-400">Backlog Eliminator Matrix</h3>
+                    <p className="text-xs text-slate-400 mt-1">Track chapters across 4 Study Materials (SM1 to SM4)</p>
+                  </div>
+                  <button onClick={handleAddBacklogRow} className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-sm transition-colors flex items-center gap-2">
+                    <Icons.Plus /> Add Row
+                  </button>
+                </div>
+
+                <div className="overflow-x-auto border border-slate-800 rounded-2xl bg-slate-950">
+                  <table className="w-full text-left border-collapse whitespace-nowrap min-w-[700px]">
+                    <thead>
+                      <tr className="bg-slate-900 border-b border-slate-800 text-xs font-black text-slate-400 uppercase tracking-wider">
+                        <th className="p-4 w-1/4">Subject</th>
+                        <th className="p-4 w-1/3">Chapter Name</th>
+                        <th className="p-4 text-center">SM 1</th>
+                        <th className="p-4 text-center">SM 2</th>
+                        <th className="p-4 text-center">SM 3</th>
+                        <th className="p-4 text-center">SM 4</th>
+                        <th className="p-4 text-center">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {backlogs.length === 0 ? (
+                        <tr>
+                          <td colSpan="7" className="p-8 text-center text-slate-500 font-bold">
+                            Wow, Zero Backlogs! You are a beast. 🔥
+                          </td>
+                        </tr>
+                      ) : (
+                        backlogs.map((row) => (
+                          <tr key={row.id} className="border-b border-slate-800 hover:bg-slate-900/50 transition-colors">
+                            <td className="p-3">
+                              <input 
+                                type="text" 
+                                value={row.subject} 
+                                onChange={(e) => updateBacklogField(row.id, 'subject', e.target.value)}
+                                className="w-full bg-transparent border-none text-sm font-bold text-orange-300 outline-none focus:bg-slate-800 px-2 py-1 rounded"
+                              />
+                            </td>
+                            <td className="p-3">
+                              <input 
+                                type="text" 
+                                value={row.chapter} 
+                                onChange={(e) => updateBacklogField(row.id, 'chapter', e.target.value)}
+                                className="w-full bg-transparent border-none text-sm font-medium text-white outline-none focus:bg-slate-800 px-2 py-1 rounded"
+                              />
+                            </td>
+                            {['sm1', 'sm2', 'sm3', 'sm4'].map((smKey) => (
+                              <td key={smKey} className="p-3 text-center">
+                                <div className="flex justify-center">
+                                  <input 
+                                    type="checkbox" 
+                                    checked={row[smKey]}
+                                    onChange={(e) => updateBacklogField(row.id, smKey, e.target.checked)}
+                                    className="w-5 h-5 rounded border-slate-700 accent-blue-500 cursor-pointer"
+                                  />
+                                </div>
+                              </td>
+                            ))}
+                            <td className="p-3 text-center">
+                              <button onClick={() => deleteBacklogRow(row.id)} className="p-2 text-slate-600 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors">
+                                <Icons.Trash />
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------------------
           VIEW: TEST ENGINE (NTA REPLICA)
           ------------------------------------------------------------------------ */}
       {currentView === 'test' && testQuestions.length > 0 && (
         <div className="flex flex-col h-screen overflow-hidden bg-slate-950">
           
-          {/* Header */}
           <header className="bg-slate-900 border-b border-slate-800 px-6 py-3 flex justify-between items-center shrink-0">
             <h1 className="font-black text-xl text-orange-400 truncate pr-4">{examType}</h1>
             <div className="flex items-center gap-4 shrink-0">
@@ -698,13 +978,9 @@ export default function JEEParivarUltimateLatexApp() {
             </div>
           </header>
           
-          {/* Main Layout */}
           <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
             
-            {/* Left Side: Question Area */}
             <div className="flex-1 flex flex-col border-r border-slate-800 relative">
-              
-              {/* NTA Subject Tabs */}
               <div className="flex bg-slate-900 border-b border-slate-800 shrink-0 overflow-x-auto">
                 {uniqueSubjects.map(subj => (
                   <button 
@@ -721,7 +997,6 @@ export default function JEEParivarUltimateLatexApp() {
                 ))}
               </div>
 
-              {/* Question Content Scrollable Area */}
               <div className="flex-1 overflow-y-auto p-6 md:p-10 pb-32">
                 {(() => {
                   const q = testQuestions[currentQuestionIndex];
@@ -732,19 +1007,16 @@ export default function JEEParivarUltimateLatexApp() {
                         <span className="text-xs px-2 py-1 bg-slate-900 border border-slate-700 text-slate-400 rounded-lg font-bold">{q.type}</span>
                       </div>
                       
-                      {/* Text & Latex */}
                       <div className="text-lg md:text-xl font-medium mb-8 leading-relaxed text-slate-200">
                         <Latex>{q.text}</Latex>
                       </div>
                       
-                      {/* Image Diagram (If exists) */}
                       {q.imageUrl && (
                         <div className="mb-8 bg-slate-900 p-4 rounded-xl border border-slate-800 inline-block">
                           <img src={q.imageUrl} alt="Diagram" className="max-w-full h-auto rounded-lg max-h-[300px] object-contain" />
                         </div>
                       )}
 
-                      {/* Options / Input */}
                       {q.type === 'MCQ' && q.options ? (
                         <div className="space-y-4">
                           {q.options.map((opt, idx) => (
@@ -774,7 +1046,6 @@ export default function JEEParivarUltimateLatexApp() {
                 })()}
               </div>
 
-              {/* Action Bar (Fixed at bottom of left pane) */}
               <div className="absolute bottom-0 left-0 right-0 bg-slate-900/90 backdrop-blur-md border-t border-slate-800 p-4 flex flex-wrap justify-between items-center gap-3">
                 <div className="flex gap-2">
                   <button onClick={handleClearResponse} className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-lg text-sm transition-colors">Clear</button>
@@ -792,10 +1063,8 @@ export default function JEEParivarUltimateLatexApp() {
 
             </div>
 
-            {/* Right Side: Palette Area */}
             <div className="w-full lg:w-80 bg-slate-900 flex flex-col shrink-0">
               
-              {/* Profile Bar */}
               <div className="p-4 border-b border-slate-800 flex items-center gap-3">
                 <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center text-slate-900 font-black shrink-0">
                   {studentName.charAt(0).toUpperCase()}
@@ -806,21 +1075,18 @@ export default function JEEParivarUltimateLatexApp() {
                 </div>
               </div>
 
-              {/* Palette Grid */}
               <div className="flex-1 overflow-y-auto p-4">
                 <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Question Palette</h3>
                 
-                {/* Filter grid by active subject to mimic NTA better, but showing all for simplicity here */}
                 <div className="grid grid-cols-4 gap-2">
                   {testQuestions.map((q, idx) => {
-                    // Only show palette items for the active subject tab
                     if ((q.subject || 'General') !== activeSubject) return null;
 
                     const hasAnswer = answers[q.id] !== undefined && answers[q.id] !== '';
                     const isReview = reviewStatus[q.id];
                     const isCurrent = currentQuestionIndex === idx;
                     
-                    let bg = 'bg-slate-950 text-slate-400 border-slate-800'; // Not visited/answered
+                    let bg = 'bg-slate-950 text-slate-400 border-slate-800'; 
                     if (hasAnswer && !isReview) bg = 'bg-green-500/20 text-green-400 border-green-500/30';
                     else if (!hasAnswer && isReview) bg = 'bg-purple-500/20 text-purple-400 border-purple-500/30';
                     else if (hasAnswer && isReview) bg = 'bg-purple-500/20 text-purple-400 border-purple-500/30 relative';
@@ -835,7 +1101,6 @@ export default function JEEParivarUltimateLatexApp() {
                 </div>
               </div>
 
-              {/* Legend & Final Submit */}
               <div className="p-4 border-t border-slate-800 bg-slate-950 shrink-0">
                 <div className="grid grid-cols-2 gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-6">
                   <div className="flex items-center gap-2"><div className="w-3 h-3 rounded bg-green-500/20 border border-green-500/30"></div> Answered</div>
@@ -906,7 +1171,6 @@ export default function JEEParivarUltimateLatexApp() {
                     <span className="font-black text-amber-400 bg-amber-400/10 px-3 py-1 rounded-lg text-sm">{data.score} <span className="text-slate-500 text-xs">/ {maxSubjScore}</span></span>
                   </div>
                   
-                  {/* Custom Progress Bar */}
                   <div className="h-2 w-full bg-slate-950 rounded-full overflow-hidden mb-6 border border-slate-800">
                     <div className="h-full bg-amber-400 rounded-full" style={{ width: `${fillPercent}%` }}></div>
                   </div>
@@ -961,7 +1225,6 @@ export default function JEEParivarUltimateLatexApp() {
               return (
                 <div key={q.id} className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-xl relative overflow-hidden">
                   
-                  {/* Status Ribbon */}
                   <div className={`absolute top-0 right-0 px-6 py-1.5 text-xs font-black uppercase tracking-widest rounded-bl-xl ${!isAttempted ? 'bg-slate-800 text-slate-400' : isCorrect ? 'bg-green-500 text-slate-900' : 'bg-red-500 text-white'}`}>
                     {!isAttempted ? 'Unattempted' : isCorrect ? 'Correct ✅' : 'Incorrect ❌'}
                   </div>
@@ -980,7 +1243,7 @@ export default function JEEParivarUltimateLatexApp() {
                   {q.type === 'MCQ' && (
                     <div className="mb-8 grid gap-3">
                       {q.options.map((opt, oIdx) => {
-                        let styling = 'bg-slate-950 border-slate-800 text-slate-400'; // default
+                        let styling = 'bg-slate-950 border-slate-800 text-slate-400'; 
                         if (oIdx === q.correctAnswer) styling = 'bg-green-500/10 border-green-500/30 text-green-400 ring-1 ring-green-500/50';
                         else if (isAttempted && oIdx === userAns && !isCorrect) styling = 'bg-red-500/10 border-red-500/30 text-red-400';
                         
@@ -1073,7 +1336,6 @@ export default function JEEParivarUltimateLatexApp() {
             </button>
           </div>
 
-          {/* Tab Switch Penalty Modal */}
           {isLockedDown && (
             <div className="fixed inset-0 bg-slate-950/95 backdrop-blur-xl z-[100] flex items-center justify-center p-6">
               <div className="bg-slate-900 border-2 border-red-500 p-10 rounded-3xl max-w-md w-full shadow-[0_0_50px_rgba(239,68,68,0.2)] text-center space-y-6">
