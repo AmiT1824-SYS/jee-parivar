@@ -1,0 +1,27 @@
+[
+  {
+    "id": 1,
+    "subject": "Physics",
+    "type": "MCQ",
+    "text": "A block of mass $m = 5 kg$ is kept on the inclined plane as shown in the figure. Calculate the friction force. Assume $g = 10 m/s^2$.",
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Inclined_plane.svg/1200px-Inclined_plane.svg.png",
+    "options": [
+      "$50 N$", 
+      "$25 N$", 
+      "$50\\sqrt{3} N$", 
+      "Zero"
+    ],
+    "correctAnswer": 1,
+    "solution": "Friction force is $mg \\sin(\\theta)$. As shown in image, $\\theta = 30^\\circ$."
+  },
+  {
+    "id": 2,
+    "subject": "Mathematics",
+    "type": "INTEGER",
+    "text": "Evaluate the definite integral: $\\int_0^{\\frac{\\pi}{2}} \\sin^2(x) dx$.",
+    "imageUrl": "",
+    "options": [],
+    "correctAnswer": "0.785",
+    "solution": "Using Wallis' formula or gamma function, the answer is $\\frac{\\pi}{4} \\approx 0.785$."
+  }
+]
