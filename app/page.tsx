@@ -3,7 +3,15 @@
 
 /**
  * ============================================================================
- * 🚀 JEE PARIVAR - ULTIMATE NTA EXAM ENGINE (v9.5 - CUSTOM FOCUS TIMER + ALL FEATURES)
+ * 🚀 JEE PARIVAR - ULTIMATE ENTERPRISE EXAM & PRODUCTIVITY ENGINE (v10.0)
+ * ============================================================================
+ * Features: 
+ * - 🏛️ Dream IIT Landing Page with High-Quality CDN Campus Images
+ * - ⏱️ Strict No-Abort Focus Lockdown Mode with Custom Timer
+ * - 📊 Professional Analytics for Focus, Micro-Goals & Backlogs
+ * - 🗄️ Full 51-Question Massive JEE Advanced 2016 Mega Test Built-in
+ * - ⏱️ Live Per-Question Time Tracking & Solution Time Breakdown
+ * - 🎥 Working Auto YouTube Solution Finder
  * ============================================================================
  */
 
@@ -12,7 +20,7 @@ import 'katex/dist/katex.min.css';
 import Latex from 'react-latex-next';
 
 // ============================================================================
-// 🎨 1. SVG ICONS
+// 🎨 1. SVG ICONS LIBRARY
 // ============================================================================
 const Icons = {
   Upload: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>,
@@ -27,7 +35,8 @@ const Icons = {
   User: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
   Calendar: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
   Plus: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
-  Target: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+  Target: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>,
+  BarChart: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
 };
 
 // ============================================================================
@@ -423,7 +432,7 @@ const JEE_ADV_2016_MEGA_TEST = [
 // ============================================================================
 export default function JEEParivarUltimateLatexApp() {
   
-  const [currentView, setCurrentView] = useState<'landing' | 'login' | 'dashboard' | 'test' | 'result' | 'remediation' | 'focus' | 'planner'>('landing');
+  const [currentView, setCurrentView] = useState<'landing' | 'login' | 'dashboard' | 'test' | 'result' | 'remediation' | 'focus' | 'planner' | 'analytics'>('landing');
   const [authMethod, setAuthMethod] = useState<'choice' | 'phone' | 'google' | 'name'>('choice');
   const [studentName, setStudentName] = useState('Aspirant');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -451,11 +460,14 @@ export default function JEEParivarUltimateLatexApp() {
 
   const [scoreCard, setScoreCard] = useState(null);
 
-  // Focus Mode States (Custom Timer Added)
+  // Focus Mode States with Strict Lockdown & Custom Timer
   const [focusMinutes, setFocusMinutes] = useState(25);
   const [customFocusInput, setCustomFocusInput] = useState('25');
   const [focusTimerSeconds, setFocusTimerSeconds] = useState(25 * 60);
   const [isFocusActive, setIsFocusActive] = useState(false);
+  const [isStrictLockdownEnabled, setIsStrictLockdownEnabled] = useState(false);
+  const [totalFocusSecondsAccumulated, setTotalFocusSecondsAccumulated] = useState(0);
+  const [completedFocusSessionsCount, setCompletedFocusSessionsCount] = useState(0);
   const [isLockedDown, setIsLockedDown] = useState(false);
   const [typedVerification, setTypedVerification] = useState('');
 
@@ -472,6 +484,13 @@ export default function JEEParivarUltimateLatexApp() {
       
       const savedBacklogs = localStorage.getItem('jee_backlog_matrix');
       if (savedBacklogs) setBacklogs(JSON.parse(savedBacklogs));
+
+      const savedFocusStats = localStorage.getItem('jee_focus_stats');
+      if (savedFocusStats) {
+        const parsed = JSON.parse(savedFocusStats);
+        setTotalFocusSecondsAccumulated(parsed.totalSeconds || 0);
+        setCompletedFocusSessionsCount(parsed.sessionsCount || 0);
+      }
 
       const savedView = localStorage.getItem('jee_current_view');
       if (savedView === 'test' || savedView === 'result') {
@@ -511,6 +530,13 @@ export default function JEEParivarUltimateLatexApp() {
 
   useEffect(() => { localStorage.setItem('jee_micro_goals', JSON.stringify(microGoals)); }, [microGoals]);
   useEffect(() => { localStorage.setItem('jee_backlog_matrix', JSON.stringify(backlogs)); }, [backlogs]);
+
+  useEffect(() => {
+    localStorage.setItem('jee_focus_stats', JSON.stringify({
+      totalSeconds: totalFocusSecondsAccumulated,
+      sessionsCount: completedFocusSessionsCount
+    }));
+  }, [totalFocusSecondsAccumulated, completedFocusSessionsCount]);
 
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message, type });
@@ -604,9 +630,13 @@ export default function JEEParivarUltimateLatexApp() {
   useEffect(() => {
     let interval;
     if (isFocusActive && !isLockedDown && focusTimerSeconds > 0) {
-      interval = setInterval(() => setFocusTimerSeconds(prev => prev - 1), 1000);
+      interval = setInterval(() => {
+        setFocusTimerSeconds(prev => prev - 1);
+        setTotalFocusSecondsAccumulated(prev => prev + 1);
+      }, 1000);
     } else if (focusTimerSeconds === 0 && isFocusActive) {
       setIsFocusActive(false);
+      setCompletedFocusSessionsCount(prev => prev + 1);
       showToast('🎉 Focus Session Completed Successfully!');
     }
     return () => clearInterval(interval);
@@ -750,6 +780,18 @@ export default function JEEParivarUltimateLatexApp() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // ANALYTICS CALCULATIONS
+  const totalMicroGoalsCount = microGoals.length;
+  const completedMicroGoalsCount = microGoals.filter(g => g.completed).length;
+  const microGoalCompletionRate = totalMicroGoalsCount > 0 ? Math.round((completedMicroGoalsCount / totalMicroGoalsCount) * 100) : 0;
+
+  const totalBacklogRows = backlogs.length;
+  const totalBacklogCheckboxes = totalBacklogRows * 4;
+  const completedBacklogCheckboxes = backlogs.reduce((acc, row) => {
+    return acc + (row.sm1 ? 1 : 0) + (row.sm2 ? 1 : 0) + (row.sm3 ? 1 : 0) + (row.sm4 ? 1 : 0);
+  }, 0);
+  const backlogCompletionRate = totalBacklogCheckboxes > 0 ? Math.round((completedBacklogCheckboxes / totalBacklogCheckboxes) * 100) : 0;
+
   const uniqueSubjects = [...new Set(testQuestions.map(q => q.subject || 'General'))];
 
   return (
@@ -767,7 +809,7 @@ export default function JEEParivarUltimateLatexApp() {
           <nav className="flex justify-between items-center px-6 md:px-10 py-5 border-b border-slate-800 bg-slate-900/80 backdrop-blur-lg sticky top-0 z-50">
             <div className="flex items-center gap-3">
               <span className="text-2xl font-black bg-gradient-to-r from-orange-500 to-amber-400 bg-clip-text text-transparent tracking-tighter">JEE PARIVAR</span>
-              <span className="text-xs px-2.5 py-1 bg-slate-800 text-slate-300 rounded-full border border-slate-700 hidden sm:block">No Ads. No Distractions.</span>
+              <span className="text-xs px-2.5 py-1 bg-slate-800 text-slate-300 rounded-full border border-slate-700 hidden sm:block">Enterprise NTA Engine</span>
             </div>
             <button onClick={() => setCurrentView('login')} className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-slate-950 font-black rounded-xl transition-all shadow-lg shadow-orange-500/20">
               Student Login 🚀
@@ -803,7 +845,7 @@ export default function JEEParivarUltimateLatexApp() {
                 Upload JSON. <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-500">Solve Like NTA.</span>
               </h1>
               <p className="text-lg text-slate-400 max-w-2xl mx-auto">
-                Bypass all limits. Get any test converted to JSON, drop it below, and experience the exact NTA interface locally. Forever free.
+                Experience elite NTA testing interface with built-in LaTeX, strict lockdown focus mode, and professional analytics.
               </p>
             </div>
 
@@ -820,7 +862,7 @@ export default function JEEParivarUltimateLatexApp() {
             
             <div className="relative z-10 pt-4">
               <button onClick={() => setCurrentView('login')} className="text-slate-400 hover:text-white font-bold border-b border-dashed border-slate-500 pb-1 transition-colors">
-                Already uploaded a test? Go to Dashboard →
+                Already configured? Go to Dashboard →
               </button>
             </div>
           </main>
@@ -837,8 +879,8 @@ export default function JEEParivarUltimateLatexApp() {
               <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-orange-400">
                 <Icons.User />
               </div>
-              <h2 className="text-3xl font-black text-white mb-2">Student Portal</h2>
-              <p className="text-slate-400 text-sm">Access your local test library</p>
+              <h2 className="text-3xl font-black text-white mb-2">Candidate Login</h2>
+              <p className="text-slate-400 text-sm">Access your secure session</p>
             </div>
 
             {authMethod === 'choice' && (
@@ -887,6 +929,9 @@ export default function JEEParivarUltimateLatexApp() {
               <p className="text-xs text-slate-400 mt-1">JEE Mission • Percentile Target: 99.9%</p>
             </div>
             <div className="flex gap-3 flex-wrap">
+              <button onClick={() => setCurrentView('analytics')} className="px-4 py-2 bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 border border-emerald-500/30 rounded-xl font-bold flex items-center gap-2 transition-colors text-sm">
+                <Icons.BarChart /> Performance Analytics
+              </button>
               <button onClick={() => setCurrentView('planner')} className="px-4 py-2 bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 border border-blue-500/30 rounded-xl font-bold flex items-center gap-2 transition-colors text-sm">
                 <Icons.Calendar /> Planner & Backlogs
               </button>
@@ -925,7 +970,7 @@ export default function JEEParivarUltimateLatexApp() {
                   <p className="mt-4 text-lg font-bold">Your library is empty.</p>
                   <p className="text-sm mb-6">Upload a JSON test to see it here, or play the default mock test.</p>
                   <button onClick={startDefaultFallbackTest} className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition-colors">
-                    Start NTA Full Mock Test
+                    Start NTA Full Mock Test (JEE Adv 2016)
                   </button>
                 </div>
               ) : (
@@ -952,7 +997,7 @@ export default function JEEParivarUltimateLatexApp() {
                   <div className="bg-slate-950 border border-slate-800 rounded-2xl p-6 flex flex-col shadow-inner relative overflow-hidden">
                     <div className="absolute top-0 right-0 bg-green-500/20 text-green-400 text-[10px] font-black px-3 py-1 rounded-bl-xl border-l border-b border-green-500/30">BUILT-IN</div>
                     <h3 className="text-xl font-black text-slate-300 mt-4 mb-2">JEE Adv 2016 Mock</h3>
-                    <p className="text-sm text-slate-500 mb-6 font-medium">Pre-loaded Mega Test</p>
+                    <p className="text-sm text-slate-500 mb-6 font-medium">51 Questions Mega Test</p>
                     <button onClick={startDefaultFallbackTest} className="mt-auto w-full py-3.5 bg-slate-800 hover:bg-slate-700 text-white font-black rounded-xl transition-all">
                       Start Test
                     </button>
@@ -970,6 +1015,70 @@ export default function JEEParivarUltimateLatexApp() {
             </div>
 
           </main>
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------------------
+          VIEW: PROFESSIONAL PERFORMANCE ANALYTICS
+          ------------------------------------------------------------------------ */}
+      {currentView === 'analytics' && (
+        <div className="min-h-screen p-6 md:p-10 max-w-6xl mx-auto">
+          <header className="flex justify-between items-center mb-10 border-b border-slate-800 pb-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-emerald-600/20 text-emerald-400 rounded-2xl flex items-center justify-center border border-emerald-500/30">
+                <Icons.BarChart />
+              </div>
+              <div>
+                <h2 className="text-3xl font-black text-white">Performance Analytics</h2>
+                <p className="text-slate-400 text-sm mt-1">Deep professional insights into your study habits & backlogs</p>
+              </div>
+            </div>
+            <button onClick={() => setCurrentView('dashboard')} className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition-colors">
+              ← Dashboard
+            </button>
+          </header>
+
+          <div className="grid md:grid-cols-3 gap-6 mb-10">
+            <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-xl">
+              <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Total Focus Time</p>
+              <p className="text-4xl font-black text-purple-400 mt-2">{Math.floor(totalFocusSecondsAccumulated / 3600)}h {Math.floor((totalFocusSecondsAccumulated % 3600) / 60)}m</p>
+              <p className="text-xs text-slate-400 mt-2 font-medium">{completedFocusSessionsCount} completed sessions</p>
+            </div>
+            <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-xl">
+              <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Micro-Goals Completion</p>
+              <p className="text-4xl font-black text-amber-400 mt-2">{microGoalCompletionRate}%</p>
+              <p className="text-xs text-slate-400 mt-2 font-medium">{completedMicroGoalsCount} of {totalMicroGoalsCount} goals crushed</p>
+            </div>
+            <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-xl">
+              <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Backlog Clearance Rate</p>
+              <p className="text-4xl font-black text-blue-400 mt-2">{backlogCompletionRate}%</p>
+              <p className="text-xs text-slate-400 mt-2 font-medium">{completedBacklogCheckboxes} of {totalBacklogCheckboxes} modules cleared</p>
+            </div>
+          </div>
+
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-xl space-y-6">
+            <h3 className="text-xl font-black text-white">Readiness & Consistency Index</h3>
+            <div className="space-y-4">
+              <div>
+                <div className="flex justify-between text-sm font-bold mb-2">
+                  <span className="text-slate-400">Study Materials Progression (SM1 - SM4)</span>
+                  <span className="text-blue-400">{backlogCompletionRate}%</span>
+                </div>
+                <div className="h-3 w-full bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                  <div className="h-full bg-blue-500 rounded-full transition-all duration-500" style={{ width: `${backlogCompletionRate}%` }}></div>
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-sm font-bold mb-2">
+                  <span className="text-slate-400">Micro-Goals Execution Efficiency</span>
+                  <span className="text-amber-400">{microGoalCompletionRate}%</span>
+                </div>
+                <div className="h-3 w-full bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                  <div className="h-full bg-amber-500 rounded-full transition-all duration-500" style={{ width: `${microGoalCompletionRate}%` }}></div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -1453,6 +1562,20 @@ export default function JEEParivarUltimateLatexApp() {
                   />
                 </div>
 
+                {/* STRICT LOCKDOWN TOGGLE OPTION */}
+                <div className="max-w-xs mx-auto flex items-center gap-3 bg-slate-950 p-4 rounded-2xl border border-slate-800 text-left cursor-pointer select-none" onClick={() => setIsStrictLockdownEnabled(!isStrictLockdownEnabled)}>
+                  <input 
+                    type="checkbox" 
+                    checked={isStrictLockdownEnabled} 
+                    onChange={(e) => setIsStrictLockdownEnabled(e.target.checked)} 
+                    className="w-5 h-5 rounded border-slate-700 accent-purple-500 cursor-pointer" 
+                  />
+                  <div>
+                    <p className="text-xs font-bold text-white">Enable Strict Lockdown</p>
+                    <p className="text-[10px] text-slate-500">Removes Abort option until timer finishes.</p>
+                  </div>
+                </div>
+
                 <button onClick={() => setIsFocusActive(true)} className="px-12 py-4 bg-green-500 hover:bg-green-400 text-slate-950 font-black text-xl rounded-2xl shadow-xl transition-transform hover:-translate-y-1">
                   Start Lockdown
                 </button>
@@ -1462,9 +1585,13 @@ export default function JEEParivarUltimateLatexApp() {
                 <p className="text-green-400 font-bold text-sm bg-green-500/10 px-4 py-2 rounded-lg inline-block border border-green-500/20 animate-pulse">
                   Active Guard: Switching tabs will lock your screen!
                 </p>
-                <button onClick={() => { setIsFocusActive(false); showToast('Session Aborted.', 'error'); }} className="block mx-auto mt-4 text-slate-500 hover:text-red-500 font-bold text-sm underline underline-offset-4 transition-colors">
-                  Abort Session
-                </button>
+                {!isStrictLockdownEnabled ? (
+                  <button onClick={() => { setIsFocusActive(false); showToast('Session Aborted.', 'error'); }} className="block mx-auto mt-4 text-slate-500 hover:text-red-500 font-bold text-sm underline underline-offset-4 transition-colors">
+                    Abort Session
+                  </button>
+                ) : (
+                  <p className="text-xs text-red-400 font-bold mt-2">🔒 Strict Lockdown is active. Abort is disabled!</p>
+                )}
               </div>
             )}
             
