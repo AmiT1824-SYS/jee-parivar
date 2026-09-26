@@ -3,15 +3,7 @@
 
 /**
  * ============================================================================
- * 🚀 JEE PARIVAR - ULTIMATE ENTERPRISE EXAM & PRODUCTIVITY ENGINE (v10.0)
- * ============================================================================
- * Features: 
- * - 🏛️ Dream IIT Landing Page with High-Quality CDN Campus Images
- * - ⏱️ Strict No-Abort Focus Lockdown Mode with Custom Timer
- * - 📊 Professional Analytics for Focus, Micro-Goals & Backlogs
- * - 🗄️ Full 51-Question Massive JEE Advanced 2016 Mega Test Built-in
- * - ⏱️ Live Per-Question Time Tracking & Solution Time Breakdown
- * - 🎥 Working Auto YouTube Solution Finder
+ * 🚀 JEE PARIVAR - ULTIMATE ENTERPRISE EXAM & PRODUCTIVITY ENGINE (v10.2)
  * ============================================================================
  */
 
@@ -460,7 +452,7 @@ export default function JEEParivarUltimateLatexApp() {
 
   const [scoreCard, setScoreCard] = useState(null);
 
-  // Focus Mode States with Strict Lockdown & Custom Timer
+  // Focus Mode States (Continuous Timer Background Run with Anti-Cheat Overlay)
   const [focusMinutes, setFocusMinutes] = useState(25);
   const [customFocusInput, setCustomFocusInput] = useState('25');
   const [focusTimerSeconds, setFocusTimerSeconds] = useState(25 * 60);
@@ -627,9 +619,10 @@ export default function JEEParivarUltimateLatexApp() {
     return () => clearInterval(interval);
   }, [currentView, timer, scoreCard, currentQuestionIndex, testQuestions]);
 
+  // CONTINUOUS BACKGROUND TIMER: Timer keeps running even if warning overlay is open, allowing study on YouTube/other tabs after code verification
   useEffect(() => {
     let interval;
-    if (isFocusActive && !isLockedDown && focusTimerSeconds > 0) {
+    if (isFocusActive && focusTimerSeconds > 0) {
       interval = setInterval(() => {
         setFocusTimerSeconds(prev => prev - 1);
         setTotalFocusSecondsAccumulated(prev => prev + 1);
@@ -640,11 +633,13 @@ export default function JEEParivarUltimateLatexApp() {
       showToast('🎉 Focus Session Completed Successfully!');
     }
     return () => clearInterval(interval);
-  }, [isFocusActive, isLockedDown, focusTimerSeconds]);
+  }, [isFocusActive, focusTimerSeconds]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden && currentView === 'test' && !scoreCard) showToast("⚠️ Warning: Tab switch detected during active test!", "error");
+      
+      // When user leaves the tab during focus session, trigger warning overlay. Timer keeps running in background.
       if (document.hidden && isFocusActive && !isLockedDown) {
         setIsLockedDown(true);
         setTypedVerification('');
@@ -833,7 +828,7 @@ export default function JEEParivarUltimateLatexApp() {
                   <div className="absolute bottom-6 left-6"><p className="text-2xl font-black text-white">IIT Delhi</p><p className="text-blue-400 font-bold text-sm">Target AIR 500</p></div>
                 </div>
                 <div className="relative group overflow-hidden rounded-3xl border border-slate-800 shadow-2xl aspect-[4/3]">
-                  <img src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=800&auto=format&fit=crop" alt="IIT Kharagpur" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-80 group-hover:opacity-100" />
+                  <img src="https://images.unsplash.com/photo-1590012314607-cda9d9b699ae?q=80&w=800&auto=format&fit=crop" alt="IIT Kharagpur" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-80 group-hover:opacity-100" />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/20 to-transparent"></div>
                   <div className="absolute bottom-6 left-6"><p className="text-2xl font-black text-white">IIT Kharagpur</p><p className="text-green-400 font-bold text-sm">Target AIR 1000</p></div>
                 </div>
@@ -1583,7 +1578,7 @@ export default function JEEParivarUltimateLatexApp() {
             ) : (
               <div className="space-y-4">
                 <p className="text-green-400 font-bold text-sm bg-green-500/10 px-4 py-2 rounded-lg inline-block border border-green-500/20 animate-pulse">
-                  Active Guard: Switching tabs will lock your screen!
+                  Active Guard: Timer runs continuously in background even if you study on YouTube!
                 </p>
                 {!isStrictLockdownEnabled ? (
                   <button onClick={() => { setIsFocusActive(false); showToast('Session Aborted.', 'error'); }} className="block mx-auto mt-4 text-slate-500 hover:text-red-500 font-bold text-sm underline underline-offset-4 transition-colors">
@@ -1600,18 +1595,19 @@ export default function JEEParivarUltimateLatexApp() {
             </button>
           </div>
 
+          {/* SMART ANTI-CHEAT WARNING OVERLAY (Timer keeps running in background; resumes app view on correct code) */}
           {isLockedDown && (
             <div className="fixed inset-0 bg-slate-950/95 backdrop-blur-xl z-[100] flex items-center justify-center p-6">
               <div className="bg-slate-900 border-2 border-red-500 p-10 rounded-3xl max-w-md w-full shadow-[0_0_50px_rgba(239,68,68,0.2)] text-center space-y-6">
                 <div className="text-red-500 flex justify-center"><Icons.Alert /></div>
-                <h3 className="text-2xl font-black text-white">Focus Broken!</h3>
-                <p className="text-slate-400 text-sm">You left the tab. To unlock the screen and resume your timer, type the pledge below exactly as shown:</p>
+                <h3 className="text-2xl font-black text-white">Focus Interruption Warning!</h3>
+                <p className="text-slate-400 text-sm">You switched tabs. Your focus timer is still running in the background. Type the security pledge below to return to your dashboard:</p>
                 <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 text-amber-400 font-mono font-black text-lg select-none">
                   I WILL NOT CHEAT
                 </div>
                 <form onSubmit={(e) => { e.preventDefault(); if (typedVerification === 'I WILL NOT CHEAT') { setIsLockedDown(false); setTypedVerification(''); } else { showToast('Incorrect text!', 'error'); } }}>
                   <input type="text" autoFocus placeholder="Type here..." value={typedVerification} onChange={(e) => setTypedVerification(e.target.value)} className="w-full p-4 bg-slate-950 border-2 border-slate-700 rounded-xl text-white text-center font-bold outline-none focus:border-red-500 mb-4" />
-                  <button type="submit" className="w-full py-4 bg-red-600 hover:bg-red-500 text-white font-black rounded-xl">Unlock Screen</button>
+                  <button type="submit" className="w-full py-4 bg-red-600 hover:bg-red-500 text-white font-black rounded-xl">Dismiss & Continue Studying</button>
                 </form>
               </div>
             </div>
